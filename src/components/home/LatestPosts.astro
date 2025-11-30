@@ -1,0 +1,47 @@
+---
+// src/components/home/LatestPosts.astro
+import { getCollection } from 'astro:content';
+import ArticleCard from '../blog/ArticleCard.astro';
+
+// 1. Obtener los posts de la colección 'blog'
+const allPosts = await getCollection('blog');
+
+// 2. Ordenarlos por fecha (el más nuevo primero) y tomar solo los últimos 3
+const latestPosts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<section class="py-24 relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-1/2 h-full bg-volt-primary/5 blur-[100px] rounded-full pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-2">
+          Transmisiones <span class="text-transparent bg-clip-text bg-gradient-to-r from-volt-primary to-volt-secondary">Recientes</span>
+        </h2>
+        <p class="text-slate-400">Mantente actualizado con las últimas normativas y tutoriales.</p>
+      </div>
+      
+      <a href="/blog" class="px-6 py-2 border border-slate-700 text-slate-300 rounded-full hover:border-volt-primary hover:text-volt-primary transition-colors text-sm font-medium">
+        Ver todo el archivo
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {latestPosts.map((post) => (
+        <ArticleCard post={post} />
+      ))}
+      
+      {/* Si no hay posts (al inicio), mostramos un mensaje placeholder */}
+      {latestPosts.length === 0 && (
+        <div class="col-span-3 text-center py-20 border border-dashed border-slate-800 rounded-2xl">
+          <p class="text-slate-500">Inicializando base de datos...</p>
+        </div>
+      )}
+    </div>
+
+  </div>
+</section>

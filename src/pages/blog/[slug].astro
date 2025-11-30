@@ -1,0 +1,104 @@
+---
+// src/pages/blog/[slug].astro
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Calendar, User, Tag, ArrowLeft } from 'lucide-react';
+
+// 1. Generar las rutas estáticas
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+
+// 2. Obtener datos
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const { title, description, pubDate, author, image, category, tags } = entry.data;
+
+const formattedDate = pubDate.toLocaleDateString('es-PE', {
+  year: 'numeric', month: 'long', day: 'numeric'
+});
+---
+
+<BaseLayout title={title} description={description}>
+  
+  <article class="relative min-h-screen pb-20">
+    
+    {/* HEADER DEL ARTÍCULO CORREGIDO 
+        Cambios:
+        1. items-center -> items-end (Alinea el contenido abajo)
+        2. min-h-[400px] -> min-h-[500px] (Más altura para títulos largos)
+        3. Added pb-32 (Mucho padding inferior para empujar el título hacia arriba, lejos del solapamiento)
+    */}
+    <div class="relative w-full h-[60vh] min-h-[500px] flex items-end justify-center overflow-hidden pb-32"> {/* Imagen de fondo (Sin cambios) */}
+        <div class="absolute inset-0 z-0">
+            <img src={image} alt={title} class="w-full h-full object-cover opacity-40 blur-sm" />
+            <div class="absolute inset-0 bg-gradient-to-b from-volt-dark/50 via-volt-dark/80 to-volt-dark"></div>
+        </div>
+
+        {/* Contenido del Header */}
+        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+            
+            {/* Botón volver y Categoría */}
+            <div class="flex flex-col items-center gap-4 mb-6">
+                 <a href="/" class="inline-flex items-center gap-2 text-slate-400 hover:text-volt-primary transition-colors text-sm font-bold bg-black/50 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 mb-2">
+                    <ArrowLeft className="w-4 h-4" /> Volver
+                </a>
+                <span class="px-3 py-1 bg-volt-primary text-volt-dark font-bold text-xs uppercase rounded cursor-default shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+                    {category}
+                </span>
+            </div>
+
+            {/* TÍTULO PRINCIPAL */}
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-tight mb-8 drop-shadow-[0_5px_15px_rgba(0,0,0,0.9)]">
+                {title}
+            </h1>
+
+            {/* Metadatos */}
+            <div class="flex flex-wrap items-center justify-center gap-6 text-slate-300 text-sm font-mono bg-black/30 inline-block px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/5">
+                <div class="flex items-center gap-2">
+                    <User className="w-4 h-4 text-volt-primary" />
+                    <span>{author}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-volt-secondary" />
+                    <span>{formattedDate}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {/* CUERPO DEL ARTÍCULO 
+       Mantenemos el -mt-20 para el efecto de solapamiento, 
+       pero ahora el header tiene espacio suficiente abajo.
+    */}
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-20"> <div class="bg-volt-dark/80 border border-white/10 backdrop-blur-xl rounded-3xl p-8 md:p-16 shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
+            
+            {/* Prose (Contenido Markdown) */}
+            <div class="prose prose-invert prose-lg max-w-none prose-headings:font-display prose-headings:text-white prose-a:text-volt-primary hover:prose-a:text-white prose-img:rounded-xl prose-img:shadow-xl">
+                <Content />
+            </div>
+
+            {/* Tags (Sin cambios) */}
+            <div class="mt-16 pt-8 border-t border-white/10">
+                <h4 class="text-sm font-bold text-slate-400 mb-4 flex items-center gap-2">
+                    <Tag className="w-4 h-4" /> Temas relacionados:
+                </h4>
+                <div class="flex flex-wrap gap-2">
+                    {tags && tags.map((tag) => (
+                        <span class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-xs text-slate-300 hover:border-volt-primary hover:text-volt-primary hover:bg-volt-primary/10 transition-all cursor-pointer lowercase">
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+  </article>
+
+</BaseLayout>

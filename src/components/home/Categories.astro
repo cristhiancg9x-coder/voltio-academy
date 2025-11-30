@@ -1,0 +1,97 @@
+---
+// src/components/home/Categories.astro
+import { Home, Factory, Sun, Zap, BookOpen, PenTool } from 'lucide-react';
+
+const categories = [
+  {
+    title: "Instalaciones Residenciales",
+    desc: "Aprende a cablear una casa desde cero. Circuitos, tableros y diagramas unifilares.",
+    icon: Home,
+    color: "text-volt-primary", // Cian
+    href: "/blog/residencial"
+  },
+  {
+    title: "Electricidad Industrial",
+    desc: "Motores trifásicos, contactores, PLCs y automatización de procesos.",
+    icon: Factory,
+    color: "text-volt-secondary", // Violeta
+    href: "/blog/industrial"
+  },
+  {
+    title: "Energías Renovables",
+    desc: "El futuro es hoy. Paneles solares, eólica y cálculo de inversores.",
+    icon: Sun,
+    color: "text-yellow-400", // Amarillo solar
+    href: "/blog/renovables"
+  },
+  {
+    title: "Fundamentos & Teoría",
+    desc: "¿Qué es un Ohmio? Ley de Watt, Kirchhoff y física eléctrica explicada fácil.",
+    icon: Zap,
+    color: "text-volt-accent", // Rojo energía
+    href: "/blog/fundamentos"
+  },
+  {
+    title: "Normativa y Seguridad",
+    desc: "CNE (Código Nacional), RETIE y normas ISO para trabajar sin riesgos.",
+    icon: ShieldCheck, // Nota: Importaré esto abajo si falta
+    color: "text-green-400", // Verde seguridad
+    href: "/blog/normativa"
+  },
+  {
+    title: "Herramientas Pro",
+    desc: "Multímetros, pinzas amperimétricas y el equipo que todo técnico necesita.",
+    icon: PenTool,
+    color: "text-orange-400",
+    href: "/blog/herramientas"
+  }
+];
+
+import { ShieldCheck } from 'lucide-react'; // Importación extra
+---
+
+<section class="py-24 relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+        Áreas de <span class="text-transparent bg-clip-text bg-gradient-to-r from-volt-primary to-volt-secondary">Especialización</span>
+      </h2>
+      <p class="text-slate-400 max-w-2xl mx-auto">
+        Explora nuestros módulos de aprendizaje. Contenido estructurado para llevarte de novato a experto.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      {categories.map((cat) => (
+        <a href={cat.href} class="group relative bg-volt-dark/50 border border-white/5 rounded-2xl p-8 hover:border-volt-primary/50 transition-all duration-300 overflow-hidden">
+          
+          {/* Efecto de luz de fondo al hacer hover (Optimizado para GPU) */}
+          <div class="absolute inset-0 bg-gradient-to-br from-volt-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+          {/* Contenido */}
+          <div class="relative z-10">
+            <div class={`w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-white/5 group-hover:border-volt-primary/30`}>
+              <cat.icon className={`w-7 h-7 ${cat.color}`} />
+            </div>
+            
+            <h3 class="text-xl font-bold text-white mb-3 font-display group-hover:text-volt-primary transition-colors">
+              {cat.title}
+            </h3>
+            
+            <p class="text-slate-400 text-sm leading-relaxed group-hover:text-slate-300">
+              {cat.desc}
+            </p>
+          </div>
+
+          {/* Decoración Esquina Futurista */}
+          <div class="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
+            <div class="w-16 h-[1px] bg-volt-primary rotate-45 translate-x-4 -translate-y-2"></div>
+          </div>
+        </a>
+      ))}
+
+    </div>
+  </div>
+</section>

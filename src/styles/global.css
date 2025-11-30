@@ -1,0 +1,91 @@
+/* src/styles/global.css */
+
+/* Directivas de Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos personalizados para la barra de desplazamiento (Scrollbar) estilo Hacker */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0f; /* volt-dark */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+  border: 2px solid #0a0a0f;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00f0ff; /* volt-primary */
+}
+
+/* Efecto para textos con gradiente */
+.text-gradient {
+    background: linear-gradient(to right, #00f0ff, #7000ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+/* src/styles/global.css */
+
+/* ... (mantén lo que ya tenías arriba) ... */
+
+/* 1. EL TABLERO DE CIRCUITOS (Fondo estático) */
+.circuit-board {
+    background-color: #0a0a0f;
+    background-image: 
+        /* Puntos de conexión pequeños */
+        radial-gradient(#1f2937 1px, transparent 1px),
+        /* Puntos de conexión grandes (nodos) */
+        radial-gradient(#1f2937 1px, transparent 1px);
+    background-size: 20px 20px, 60px 60px;
+    background-position: 0 0, 30px 30px;
+    opacity: 0.5;
+}
+
+/* 2. EL FLUJO DE ENERGÍA (Animación) */
+/* Crea un haz de luz que se mueve en el fondo */
+@keyframes energy-flow {
+    0% { transform: translateY(-100%) translateX(-50%) rotate(45deg); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(100%) translateX(50%) rotate(45deg); opacity: 0; }
+}
+
+.energy-beam {
+    position: absolute;
+    top: -50%;
+    left: 0;
+    width: 200%; 
+    height: 200%;
+    background: linear-gradient(
+        transparent 0%, 
+        rgba(0, 240, 255, 0.03) 45%, 
+        rgba(0, 240, 255, 0.08) 50%, 
+        rgba(0, 240, 255, 0.03) 55%, 
+        transparent 100%
+    );
+    animation: energy-flow 10s infinite linear;
+    pointer-events: none; /* Para que no bloquee los clics */
+    z-index: -1;
+}
+
+/* Un segundo haz más lento para dar profundidad */
+.energy-beam-2 {
+    animation-duration: 15s;
+    animation-delay: 2s;
+    background: linear-gradient(
+        transparent 0%, 
+        rgba(112, 0, 255, 0.02) 48%, 
+        rgba(112, 0, 255, 0.06) 50%, 
+        rgba(112, 0, 255, 0.02) 52%, 
+        transparent 100%
+    );
+}

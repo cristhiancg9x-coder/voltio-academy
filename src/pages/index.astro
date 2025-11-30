@@ -1,16 +1,19 @@
 ---
-
+// src/pages/index.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import Categories from '../components/home/Categories.astro';
+import LatestPosts from '../components/home/LatestPosts.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Inicio - Curso de Electricidad">
+	
+	<Hero />
+	
+	<Categories />
+
+	<LatestPosts />
+
+    <div class="h-20"></div> 
+
+</BaseLayout>

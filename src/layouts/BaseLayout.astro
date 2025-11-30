@@ -1,0 +1,58 @@
+---
+// src/layouts/BaseLayout.astro
+import '../styles/global.css';
+import Navbar from '../components/ui/Navbar.jsx';
+import Footer from '../components/ui/Footer.astro';
+// Props: Variables que pasaremos a cada página (Título y Descripción para SEO)
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = "Aprende electricidad desde cero hasta nivel experto." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+		<title>{title} | VoltioAcademy</title>
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={Astro.url} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={new URL("/social-image.png", Astro.site)} />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={Astro.url} />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+        <meta property="twitter:image" content={new URL("/social-image.png", Astro.site)} />
+	</head>
+	
+	<body class="bg-volt-dark text-slate-300 font-sans antialiased selection:bg-volt-primary selection:text-volt-dark overflow-x-hidden relative min-h-screen">
+		<Navbar client:load />
+        <div class="fixed inset-0 z-[-3] circuit-board"></div>
+    
+        <div class="fixed inset-0 z-[-2] overflow-hidden">
+        <div class="energy-beam"></div>
+        <div class="energy-beam-2"></div>
+        </div>
+
+        <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-volt-primary/10 blur-[120px] rounded-full z-[-1] pointer-events-none"></div>
+
+        <div class="relative z-10">
+        <slot />
+        </div>
+        <Footer />
+    </body>
+</html>
