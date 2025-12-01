@@ -5,17 +5,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/blog/ArticleCard.astro';
 import { Search, Hash, Filter } from 'lucide-react';
 
-// 1. Obtener todos los posts y ordenarlos
+// 1. Obtener todos los posts y ordenarlos por fecha
 const allPosts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
 // 2. Extraer todas las etiquetas (tags) únicas para el filtro
 const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 ---
 
 <BaseLayout title="Biblioteca Técnica" description="Archivo completo de guías y normativas eléctricas">
   
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-10">
     
     {/* ENCABEZADO: Título y Buscador */}
     <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 border-b border-white/10 pb-8">
@@ -103,7 +104,7 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 </BaseLayout>
 
 <script>
-    // 1. Definimos los tipos exactos de cada elemento
+    // LÓGICA DE BÚSQUEDA Y FILTRADO (TypeScript Safe)
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     const articles = document.querySelectorAll('.article-item') as NodeListOf<HTMLElement>;
     const filterBtns = document.querySelectorAll('.filter-btn') as NodeListOf<HTMLButtonElement>;
@@ -111,12 +112,12 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
     const resetBtn = document.getElementById('reset-search') as HTMLButtonElement;
 
     function filterArticles() {
-        // Validación de seguridad: Si no existe el input, paramos todo.
+        // Si por alguna razón no carga el input, salimos para evitar errores
         if (!searchInput) return;
 
         const term = searchInput.value.toLowerCase();
         
-        // Buscamos el botón activo con tipado seguro
+        // Buscar el botón activo
         const activeTagBtn = document.querySelector('.filter-btn.active');
         const activeTag = activeTagBtn ? activeTagBtn.getAttribute('data-tag') : 'all';
         
@@ -151,15 +152,17 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
         }
     }
 
-    // Event Listeners con comprobación de nulidad (?.)
+    // Event Listeners con seguridad (?.)
     searchInput?.addEventListener('input', filterArticles);
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Resetear estilos de botones
             filterBtns.forEach(b => {
                 b.classList.remove('active', 'bg-volt-primary/10', 'text-volt-primary', 'border-volt-primary/20');
                 b.classList.add('text-slate-400');
             });
+            // Activar botón clickeado
             btn.classList.add('active', 'bg-volt-primary/10', 'text-volt-primary', 'border', 'border-volt-primary/20');
             btn.classList.remove('text-slate-400');
             

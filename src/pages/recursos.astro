@@ -1,0 +1,123 @@
+---
+// src/pages/recursos.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { FileText, Download, FileSpreadsheet, CheckSquare, Zap } from 'lucide-react';
+
+const resources = [
+  {
+    title: "Tabla de Ampacidad de Conductores",
+    desc: "Guía rápida para seleccionar el calibre de cable correcto según la corriente (Norma Indeco/CNE).",
+    type: "PDF",
+    size: "1.2 MB",
+    icon: FileText,
+    color: "text-red-400",
+    bg: "bg-red-400/10",
+    border: "border-red-400/20"
+  },
+  {
+    title: "Plantilla de Presupuestos Eléctricos",
+    desc: "Archivo Excel automatizado para calcular costos de materiales y mano de obra para tus clientes.",
+    type: "Excel",
+    size: "450 KB",
+    icon: FileSpreadsheet,
+    color: "text-green-400",
+    bg: "bg-green-400/10",
+    border: "border-green-400/20"
+  },
+  {
+    title: "Simbología Eléctrica Residencial",
+    desc: "Lámina completa con todos los símbolos para leer planos arquitectónicos.",
+    type: "PDF",
+    size: "2.5 MB",
+    icon: Zap,
+    color: "text-volt-primary",
+    bg: "bg-volt-primary/10",
+    border: "border-volt-primary/20"
+  },
+  {
+    title: "Checklist de Mantenimiento Preventivo",
+    desc: "Lista de verificación para realizar inspecciones en tableros eléctricos sin olvidar nada.",
+    type: "PDF",
+    size: "800 KB",
+    icon: CheckSquare,
+    color: "text-volt-secondary",
+    bg: "bg-volt-secondary/10",
+    border: "border-volt-secondary/20"
+  }
+];
+---
+
+<BaseLayout title="Recursos Gratuitos" description="Descarga guías, tablas y plantillas para electricistas">
+  
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
+    
+    {/* HEADER */}
+    <div class="text-center mb-16">
+        <span class="text-volt-primary font-mono text-xs tracking-widest uppercase mb-2 block">Zona de Descargas</span>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-6">
+            Recursos <span class="text-transparent bg-clip-text bg-gradient-to-r from-volt-primary to-volt-secondary">Gratuitos</span>
+        </h1>
+        <p class="text-slate-400 max-w-2xl mx-auto text-lg">
+            Herramientas digitales esenciales para tu día a día. Descárgalas y llévalas en tu celular.
+        </p>
+    </div>
+
+    {/* GRID DE RECURSOS */}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {resources.map((res) => (
+            <div class="group relative bg-volt-dark/60 border border-white/5 hover:border-white/20 rounded-2xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                
+                <div class="flex items-start gap-6">
+                    {/* Icono */}
+                    <div class={`p-4 rounded-xl ${res.bg} ${res.border} border shrink-0`}>
+                        <res.icon className={`w-8 h-8 ${res.color}`} />
+                    </div>
+
+                    {/* Contenido */}
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class={`text-xs font-bold px-2 py-0.5 rounded ${res.bg} ${res.color} border ${res.border}`}>
+                                {res.type}
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">{res.size}</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2 font-display group-hover:text-volt-primary transition-colors">
+                            {res.title}
+                        </h3>
+                        
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            {res.desc}
+                        </p>
+
+                        <button class="w-full py-3 bg-white/5 border border-white/10 text-white font-bold rounded-lg hover:bg-volt-primary hover:text-black hover:border-volt-primary transition-all flex items-center justify-center gap-2">
+                            <Download className="w-4 h-4" /> Descargar Archivo
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        ))}
+
+    </div>
+
+    {/* BANNER DE SUSCRIPCIÓN (Upsell) */}
+    <div class="mt-20 p-8 rounded-3xl bg-gradient-to-r from-volt-dark to-black border border-white/10 relative overflow-hidden text-center">
+        <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-volt-primary to-transparent opacity-50"></div>
+        
+        <h3 class="text-2xl font-bold text-white mb-4">¿Quieres el Pack Completo?</h3>
+        <p class="text-slate-400 mb-8 max-w-xl mx-auto">
+            Suscríbete a nuestro boletín y recibe un archivo .ZIP con más de 50 diagramas unifilares listos para editar en AutoCAD.
+        </p>
+        
+        <form class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <input type="email" placeholder="Tu correo electrónico" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-volt-primary outline-none" />
+            <button class="bg-volt-primary text-black font-bold px-6 py-3 rounded-lg hover:bg-white transition-colors">
+                Enviar Pack
+            </button>
+        </form>
+    </div>
+
+  </div>
+</BaseLayout>

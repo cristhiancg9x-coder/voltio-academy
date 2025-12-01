@@ -1,0 +1,58 @@
+    ---
+// src/pages/terminos.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Scale, AlertTriangle, Copyright } from 'lucide-react';
+---
+
+<BaseLayout title="Términos y Condiciones" description="Reglas de uso y descargo de responsabilidad">
+  
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
+    
+    <div class="text-center mb-16">
+        <div class="inline-flex items-center justify-center p-3 bg-volt-secondary/10 rounded-full border border-volt-secondary/30 mb-6">
+            <Scale className="w-8 h-8 text-volt-secondary" />
+        </div>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+            Términos de <span class="text-volt-secondary">Uso</span>
+        </h1>
+        <p class="text-slate-400">Por favor, lee esto antes de manipular cualquier instalación.</p>
+    </div>
+
+    <div class="prose prose-invert prose-lg max-w-none text-slate-300 bg-volt-dark/50 p-8 rounded-3xl border border-white/5">
+        
+        <div class="bg-red-500/10 border border-red-500/20 p-6 rounded-xl mb-8 not-prose">
+            <h3 class="text-red-500 font-bold flex items-center gap-2 mb-2 text-xl">
+                <AlertTriangle className="w-6 h-6" /> Descargo de Responsabilidad (Peligro)
+            </h3>
+            <p class="text-slate-300 text-sm">
+                La electricidad es peligrosa y puede causar lesiones graves o la muerte. 
+                El contenido de <strong>VoltioAcademy</strong> es puramente educativo y teórico. 
+                No intentes realizar instalaciones para las que no estás certificado. 
+                <strong>VoltioAcademy no se hace responsable</strong> de daños materiales, lesiones personales o multas derivadas del uso de la información aquí presentada.
+            </p>
+        </div>
+
+        <h3>1. Propiedad Intelectual</h3>
+        <p>
+            Todo el contenido (textos, diagramas, código fuente y diseño) es propiedad exclusiva de VoltioAcademy. Está prohibida su reproducción total o parcial con fines comerciales sin autorización escrita.
+        </p>
+
+        <h3>2. Uso Permitido</h3>
+        <p>
+            Eres libre de usar nuestras guías para tu aprendizaje personal o académico. Si eres profesor, puedes usar nuestro material en clase citando la fuente.
+        </p>
+
+        <h3>3. Enlaces a Terceros</h3>
+        <p>
+            Podemos incluir enlaces a sitios externos (como normativas oficiales o tiendas de herramientas). No tenemos control sobre esos sitios y no somos responsables de su contenido.
+        </p>
+
+        <h3>4. Modificaciones</h3>
+        <p>
+            Nos reservamos el derecho de modificar estos términos en cualquier momento para adaptarnos a cambios legales o nuevas funcionalidades del sitio.
+        </p>
+
+    </div>
+
+  </div>
+</BaseLayout>       

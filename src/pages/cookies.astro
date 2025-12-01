@@ -1,0 +1,68 @@
+---
+// src/pages/cookies.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Cookie, Info, Settings, ShieldCheck } from 'lucide-react';
+---
+
+<BaseLayout title="Política de Cookies" description="Uso de cookies y tecnologías de rastreo en VoltioAcademy">
+  
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
+    
+    <div class="text-center mb-16">
+        <div class="inline-flex items-center justify-center p-3 bg-orange-500/10 rounded-full border border-orange-500/30 mb-6">
+            <Cookie className="w-8 h-8 text-orange-500" />
+        </div>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+            Política de <span class="text-orange-500">Cookies</span>
+        </h1>
+        <p class="text-slate-400">Para que la web funcione fluida como la corriente.</p>
+    </div>
+
+    <div class="prose prose-invert prose-lg max-w-none text-slate-300 bg-volt-dark/50 p-8 rounded-3xl border border-white/5">
+        
+        <h3>1. ¿Qué son las Cookies?</h3>
+        <p>
+            No, no son las que se comen. Son pequeños archivos de texto que los sitios web guardan en tu computadora o celular cuando los visitas. Funcionan como la "memoria" del sitio, permitiéndonos recordarte cuando vuelves.
+        </p>
+
+        <h3>2. ¿Qué tipos usamos?</h3>
+        <div class="grid gap-4 not-prose my-8">
+            
+            <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex gap-4">
+                <ShieldCheck className="w-6 h-6 text-green-400 shrink-0" />
+                <div>
+                    <h4 class="text-white font-bold text-sm">Esenciales (Técnicas)</h4>
+                    <p class="text-slate-400 text-xs">Necesarias para que la web cargue, para que funcione el buscador y para proteger los formularios contra ataques.</p>
+                </div>
+            </div>
+
+            <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex gap-4">
+                <Settings className="w-6 h-6 text-volt-primary shrink-0" />
+                <div>
+                    <h4 class="text-white font-bold text-sm">Funcionales</h4>
+                    <p class="text-slate-400 text-xs">Recuerdan tus preferencias, como si prefieres ver el código en modo oscuro o qué artículos ya leíste.</p>
+                </div>
+            </div>
+
+            <div class="bg-black/40 p-4 rounded-xl border border-white/5 flex gap-4">
+                <Info className="w-6 h-6 text-volt-secondary shrink-0" />
+                <div>
+                    <h4 class="text-white font-bold text-sm">Analíticas</h4>
+                    <p class="text-slate-400 text-xs">Nos ayudan a entender qué cursos son los más visitados para crear más contenido similar. Usamos datos anónimos.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <h3>3. ¿Cómo desactivarlas?</h3>
+        <p>
+            Puedes permitir, bloquear o eliminar las cookies instaladas en tu equipo mediante la configuración de las opciones de tu navegador de internet. 
+        </p>
+        <p>
+            Ten en cuenta que si desactivas las cookies "Esenciales", algunas partes de VoltioAcademy (como el Login o los Exámenes) dejarán de funcionar correctamente.
+        </p>
+
+    </div>
+
+  </div>
+</BaseLayout>   

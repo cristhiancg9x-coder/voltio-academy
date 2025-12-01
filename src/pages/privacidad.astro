@@ -1,0 +1,58 @@
+---
+// src/pages/privacidad.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Shield, Lock, Eye } from 'lucide-react';
+---
+
+<BaseLayout title="Política de Privacidad" description="Cómo protegemos tus datos en VoltioAcademy">
+  
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
+    
+    <div class="text-center mb-16">
+        <div class="inline-flex items-center justify-center p-3 bg-volt-primary/10 rounded-full border border-volt-primary/30 mb-6">
+            <Lock className="w-8 h-8 text-volt-primary" />
+        </div>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+            Política de <span class="text-volt-primary">Privacidad</span>
+        </h1>
+        <p class="text-slate-400">Última actualización: Noviembre 2025</p>
+    </div>
+
+    <div class="prose prose-invert prose-lg max-w-none text-slate-300 bg-volt-dark/50 p-8 rounded-3xl border border-white/5">
+        
+        <h3>1. Introducción</h3>
+        <p>
+            En <strong>VoltioAcademy</strong>, nos tomamos muy en serio la seguridad de tus datos. Esta política describe qué información recopilamos y cómo la utilizamos. Al usar nuestra plataforma, aceptas las prácticas descritas aquí.
+        </p>
+
+        <h3>2. Datos que recopilamos</h3>
+        <ul class="list-disc pl-5 space-y-2 text-slate-400">
+            <li><strong>Información proporcionada voluntariamente:</strong> Como tu correo electrónico al suscribirte al boletín o contactarnos.</li>
+            <li><strong>Datos de navegación:</strong> Dirección IP, tipo de navegador y páginas visitadas (para análisis estadístico anónimo).</li>
+        </ul>
+
+        <h3>3. Uso de la información</h3>
+        <p>
+            Utilizamos tus datos exclusivamente para:
+        </p>
+        <ul class="list-disc pl-5 space-y-2 text-slate-400">
+            <li>Enviarte material educativo y actualizaciones del CNE (si te has suscrito).</li>
+            <li>Mejorar la experiencia de usuario en nuestra plataforma web.</li>
+            <li>Responder a tus consultas de soporte técnico.</li>
+        </ul>
+        <p><strong>Nunca venderemos tus datos a terceros.</strong></p>
+
+        <h3>4. Cookies</h3>
+        <p>
+            Usamos cookies esenciales para recordar tus preferencias (como el modo de lectura). Puedes desactivarlas en tu navegador, aunque algunas funciones del sitio podrían no actuar correctamente.
+        </p>
+
+        <h3>5. Tus Derechos (ARCO)</h3>
+        <p>
+            Tienes derecho a Acceder, Rectificar, Cancelar u Oponerte al tratamiento de tus datos. Para ejercer estos derechos, escríbenos a <strong>legal@voltioacademy.lat</strong>.
+        </p>
+
+    </div>
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,75 @@
+---
+// src/pages/blog/[category].astro
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/blog/ArticleCard.astro';
+import { ArrowLeft, Tag } from 'lucide-react';
+
+// 1. Generar rutas estáticas para cada categoría que exista en tus posts
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  
+  // Extraer todas las categorías únicas
+  const uniqueCategories = [...new Set(allPosts.map((post) => post.data.category))];
+
+  // Generar la ruta para cada una
+  // IMPORTANTE: Convertimos a minúsculas para que la URL sea bonita (ej: "Residencial" -> "residencial")
+  return uniqueCategories.map((category) => {
+    const categorySlug = category.toLowerCase().replace(/\s+/g, '-'); // "Energías Renovables" -> "energias-renovables"
+    
+    // Filtramos los posts que pertenecen a esta categoría
+    const filteredPosts = allPosts.filter((post) => post.data.category === category);
+
+    return {
+      params: { category: categorySlug },
+      props: { categoryName: category, posts: filteredPosts },
+    };
+  });
+}
+
+// 2. Recibir los datos de la ruta actual
+const { category } = Astro.params;
+const { categoryName, posts } = Astro.props;
+---
+
+<BaseLayout title={`Categoría: ${categoryName}`} description={`Artículos sobre ${categoryName}`}>
+  
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    
+    {/* Header de Categoría */}
+    <div class="mb-12">
+        <a href="/blog" class="inline-flex items-center gap-2 text-slate-400 hover:text-volt-primary transition-colors mb-6 text-sm font-bold">
+            <ArrowLeft className="w-4 h-4" /> Volver al Archivo Central
+        </a>
+
+        <div class="flex items-center gap-4 mb-4">
+            <div class="p-3 bg-volt-primary/10 rounded-xl border border-volt-primary/30">
+                <Tag className="w-8 h-8 text-volt-primary" />
+            </div>
+            <span class="text-volt-primary font-mono text-sm tracking-widest uppercase">Explorando Módulo</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-4 capitalize">
+            {categoryName}
+        </h1>
+        <p class="text-slate-400 text-lg max-w-2xl">
+            Colección especializada de recursos y guías técnicas.
+        </p>
+    </div>
+
+    {/* Grid de Resultados */}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
+            <ArticleCard post={post} />
+        ))}
+    </div>
+
+    {/* Mensaje si hay pocos posts */}
+    {posts.length === 0 && (
+        <div class="py-20 text-center border border-dashed border-slate-800 rounded-2xl">
+            <p class="text-slate-500">Aún no hay documentos en esta sección.</p>
+        </div>
+    )}
+
+  </div>
+</BaseLayout>
