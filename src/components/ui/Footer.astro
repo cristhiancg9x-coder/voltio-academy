@@ -1,8 +1,9 @@
 ---
 // src/components/ui/Footer.astro
 import { Zap, Github, Twitter, Linkedin, Mail } from 'lucide-react';
+import ServerStatus from './ServerStatus.jsx'; // <--- AÑADE ESTO
+import SubscribeForm from './SubscribeForm.jsx'; // <--- NUEVO
 ---
-
 <footer class="relative border-t border-volt-primary/20 bg-volt-dark overflow-hidden">
   
   <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-volt-primary to-transparent opacity-50"></div>
@@ -63,20 +64,7 @@ import { Zap, Github, Twitter, Linkedin, Mail } from 'lucide-react';
       <div>
         <h4 class="text-white font-bold mb-6 font-display">Boletín Técnico</h4>
         <p class="text-slate-400 text-xs mb-4">Recibe tips de instalación y actualizaciones del CNE cada semana.</p>
-        
-        <form class="space-y-2">
-            <div class="relative">
-                <input 
-                    type="email" 
-                    placeholder="tu@email.com" 
-                    class="w-full bg-black/50 border border-slate-700 rounded-lg py-2 px-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt-primary focus:ring-1 focus:ring-volt-primary transition-all"
-                />
-                <Mail className="absolute right-3 top-2.5 w-4 h-4 text-slate-500" />
-            </div>
-            <button class="w-full py-2 bg-volt-primary/10 border border-volt-primary/50 text-volt-primary rounded-lg text-sm font-bold hover:bg-volt-primary hover:text-black transition-all">
-                SUSCRIBIRSE
-            </button>
-        </form>
+        <SubscribeForm client:visible />
       </div>
 
     </div>
@@ -85,6 +73,7 @@ import { Zap, Github, Twitter, Linkedin, Mail } from 'lucide-react';
       <p class="text-slate-600 text-xs">
         © 2025 VoltioAcademy. Desarrollado con tecnología Astro.lat
       </p>
+      <ServerStatus client:visible />
     </div>
   </div>
 </footer>   

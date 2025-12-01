@@ -5,20 +5,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/blog/ArticleCard.astro';
 import { Search, Hash, Filter } from 'lucide-react';
 
-// 1. Obtener todos los posts y ordenarlos por fecha
 const allPosts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-// 2. Extraer todas las etiquetas (tags) únicas para el filtro
 const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 ---
 
 <BaseLayout title="Biblioteca Técnica" description="Archivo completo de guías y normativas eléctricas">
   
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     
-    {/* ENCABEZADO: Título y Buscador */}
     <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 border-b border-white/10 pb-8">
         <div>
             <span class="text-volt-primary font-mono text-xs tracking-widest uppercase mb-2 block">Base de Datos V.2.0</span>
@@ -27,7 +24,6 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
             </h1>
         </div>
 
-        {/* Barra de Búsqueda Interactiva */}
         <div class="w-full md:w-96 relative group">
             <div class="absolute -inset-0.5 bg-gradient-to-r from-volt-primary to-volt-secondary rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-500"></div>
             <div class="relative flex items-center bg-black rounded-lg">
@@ -43,20 +39,15 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
-        
-        {/* SIDEBAR: Filtros (Columna Izquierda) */}
         <aside class="hidden lg:block space-y-8">
-            
             <div class="bg-volt-dark/50 border border-white/5 rounded-xl p-6 backdrop-blur-sm">
                 <h3 class="text-white font-bold mb-4 flex items-center gap-2 font-display">
                     <Filter className="w-4 h-4 text-volt-primary" /> Filtrar por:
                 </h3>
-                
                 <div class="space-y-2">
                     <button class="filter-btn active w-full text-left px-3 py-2 rounded-md text-sm transition-colors bg-volt-primary/10 text-volt-primary border border-volt-primary/20" data-tag="all">
                         Ver Todo
                     </button>
-                    {/* Generar botones por cada Tag existente */}
                     {allTags.map(tag => (
                         <button class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-colors capitalize flex items-center gap-2" data-tag={tag}>
                             <Hash className="w-3 h-3 opacity-50" /> {tag}
@@ -64,8 +55,6 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
                     ))}
                 </div>
             </div>
-
-            {/* Banner Promocional Lateral */}
             <div class="p-6 rounded-xl bg-gradient-to-br from-volt-secondary/20 to-volt-dark border border-volt-secondary/30 text-center">
                 <p class="text-volt-secondary text-xs font-bold uppercase mb-2">Acceso Premium</p>
                 <h4 class="text-white font-bold mb-3">¿Necesitas certificarte?</h4>
@@ -74,37 +63,26 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
                     Ver Planes
                 </button>
             </div>
-
         </aside>
 
-        {/* GRID DE RESULTADOS (3 Columnas) */}
         <div class="lg:col-span-3">
-            
-            {/* Contenedor de artículos */}
             <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {allPosts.map((post) => (
-                    // Envolvemos la tarjeta en un div para poder filtrarla con JS
                     <div class="article-item transition-all duration-500" data-tags={post.data.tags?.join(',') || ''} data-title={post.data.title.toLowerCase()}>
                         <ArticleCard post={post} />
                     </div>
                 ))}
             </div>
-
-            {/* Mensaje de "No hay resultados" (Oculto por defecto) */}
             <div id="no-results" class="hidden text-center py-20">
                 <p class="text-slate-500 text-lg">No se encontraron datos en la memoria del sistema.</p>
                 <button id="reset-search" class="mt-4 text-volt-primary hover:underline">Limpiar filtros</button>
             </div>
-
         </div>
-
     </div>
-
   </div>
 </BaseLayout>
 
 <script>
-    // LÓGICA DE BÚSQUEDA Y FILTRADO (TypeScript Safe)
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     const articles = document.querySelectorAll('.article-item') as NodeListOf<HTMLElement>;
     const filterBtns = document.querySelectorAll('.filter-btn') as NodeListOf<HTMLButtonElement>;
@@ -112,23 +90,16 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
     const resetBtn = document.getElementById('reset-search') as HTMLButtonElement;
 
     function filterArticles() {
-        // Si por alguna razón no carga el input, salimos para evitar errores
         if (!searchInput) return;
-
         const term = searchInput.value.toLowerCase();
-        
-        // Buscar el botón activo
         const activeTagBtn = document.querySelector('.filter-btn.active');
         const activeTag = activeTagBtn ? activeTagBtn.getAttribute('data-tag') : 'all';
-        
         let visibleCount = 0;
 
         articles.forEach(article => {
             const title = article.getAttribute('data-title') || '';
             const tagsAttr = article.getAttribute('data-tags') || '';
             const tags = tagsAttr.split(',');
-            
-            // Coincidencias
             const matchesSearch = title.includes(term);
             const matchesTag = activeTag === 'all' || (activeTag && tags.includes(activeTag));
 
@@ -142,7 +113,6 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
             }
         });
 
-        // Mostrar/Ocultar mensaje de error
         if (noResults) {
             if (visibleCount === 0) {
                 noResults.classList.remove('hidden');
@@ -152,24 +122,18 @@ const allTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
         }
     }
 
-    // Event Listeners con seguridad (?.)
     searchInput?.addEventListener('input', filterArticles);
-
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Resetear estilos de botones
             filterBtns.forEach(b => {
                 b.classList.remove('active', 'bg-volt-primary/10', 'text-volt-primary', 'border-volt-primary/20');
                 b.classList.add('text-slate-400');
             });
-            // Activar botón clickeado
             btn.classList.add('active', 'bg-volt-primary/10', 'text-volt-primary', 'border', 'border-volt-primary/20');
             btn.classList.remove('text-slate-400');
-            
             filterArticles();
         });
     });
-
     resetBtn?.addEventListener('click', () => {
         if (searchInput) searchInput.value = '';
         const allBtn = document.querySelector('[data-tag="all"]') as HTMLElement;
