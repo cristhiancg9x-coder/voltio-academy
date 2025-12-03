@@ -1,0 +1,89 @@
+---
+// src/pages/examen.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CheckCircle, AlertTriangle, Timer, Save } from 'lucide-react';
+---
+
+<BaseLayout title="Simulador CNE" description="Examen de certificación para técnicos">
+  
+  <div id="exam-container" class="hidden max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
+    
+    {/* HEADER DEL EXAMEN */}
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 bg-volt-dark/50 p-6 rounded-2xl border border-white/10">
+        <div>
+            <h1 class="text-2xl font-bold text-white font-display mb-1">Simulador CNE 2025</h1>
+            <p class="text-slate-400 text-sm">Módulo: Seguridad Eléctrica</p>
+        </div>
+        <div class="flex items-center gap-4 mt-4 md:mt-0">
+            <div class="flex items-center gap-2 text-volt-primary bg-volt-primary/10 px-4 py-2 rounded-lg border border-volt-primary/30">
+                <Timer className="w-5 h-5" />
+                <span class="font-mono font-bold">45:00</span>
+            </div>
+        </div>
+    </div>
+
+    {/* PREGUNTA 1 */}
+    <div class="bg-black/40 border border-white/10 rounded-2xl p-8 mb-6">
+        <h3 class="text-lg text-white font-bold mb-6">1. Según el CNE Utilización, ¿cuál es la altura mínima para un tomacorriente en cocina?</h3>
+        
+        <div class="space-y-3">
+            <label class="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-volt-primary/50 cursor-pointer transition-all hover:bg-white/5 group">
+                <input type="radio" name="p1" class="w-5 h-5 accent-volt-primary" />
+                <span class="text-slate-300 group-hover:text-white">0.30 m sobre el nivel del piso terminado.</span>
+            </label>
+            <label class="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-volt-primary/50 cursor-pointer transition-all hover:bg-white/5 group">
+                <input type="radio" name="p1" class="w-5 h-5 accent-volt-primary" />
+                <span class="text-slate-300 group-hover:text-white">1.10 m sobre el nivel del piso terminado.</span>
+            </label>
+            <label class="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-volt-primary/50 cursor-pointer transition-all hover:bg-white/5 group">
+                <input type="radio" name="p1" class="w-5 h-5 accent-volt-primary" />
+                <span class="text-slate-300 group-hover:text-white">No existe altura mínima.</span>
+            </label>
+        </div>
+    </div>
+
+    {/* BOTÓN ENVIAR (Simulado por ahora) */}
+    <div class="text-right">
+        <button class="px-8 py-3 bg-volt-primary text-black font-bold rounded-lg hover:bg-white transition-colors flex items-center gap-2 ml-auto">
+            <Save className="w-5 h-5" /> Finalizar Intento
+        </button>
+    </div>
+
+  </div>
+
+  <div id="loader" class="min-h-[60vh] flex flex-col items-center justify-center">
+    <div class="w-12 h-12 border-4 border-volt-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="text-slate-500 text-sm animate-pulse">Verificando credenciales...</p>
+  </div>
+
+</BaseLayout>
+
+<script>
+    import { supabase } from '../lib/supabase';
+
+    // EL GUARDIA DE SEGURIDAD 👮‍♂️
+    async function checkAccess() {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            // SI NO HAY SESIÓN: ¡FUERA!
+            // Redirigimos al login
+            window.location.href = '/login';
+        } else {
+            // SI HAY SESIÓN: ¡PASE!
+            // Ocultamos el cargando y mostramos el examen
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('exam-container');
+            
+            if(loader && content) {
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+                // Pequeña animación de entrada
+                content.classList.add('animate-fade-in'); 
+            }
+        }
+    }
+
+    // Ejecutar al cargar la página
+    checkAccess();
+</script>
