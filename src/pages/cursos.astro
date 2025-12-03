@@ -1,64 +1,16 @@
 ---
 // src/pages/cursos.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { Play, Lock, Clock, Award, BarChart } from 'lucide-react';
-
-const courses = [
-  {
-    title: "Electricidad Domiciliaria: Nivel 1",
-    desc: "Domina las reparaciones básicas, cambios de tomacorrientes e instalación de luminarias LED.",
-    level: "Principiante",
-    modules: 12,
-    hours: 5,
-    progress: 100,
-    status: "available",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
-    price: "Gratis"
-  },
-  {
-    title: "Lectura de Planos Eléctricos",
-    desc: "Aprende a interpretar diagramas unifilares y símbolos normalizados según el CNE.",
-    level: "Intermedio",
-    modules: 8,
-    hours: 3,
-    progress: 100,
-    status: "available",
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop",
-    price: "Gratis"
-  },
-  {
-    title: "Automatización con Contactores",
-    desc: "Lógica cableada para control de motores. Arranque directo e inversión de giro.",
-    level: "Avanzado",
-    modules: 20,
-    hours: 15,
-    progress: 0,
-    status: "locked",
-    image: "https://images.unsplash.com/photo-1565514020125-28b3d64024c0?q=80&w=1000&auto=format&fit=crop",
-    price: "Premium"
-  },
-  {
-    title: "Energía Solar Fotovoltaica",
-    desc: "Dimensionamiento de paneles solares y baterías para viviendas aisladas.",
-    level: "Experto",
-    modules: 15,
-    hours: 12,
-    progress: 0,
-    status: "locked",
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1000&auto=format&fit=crop",
-    price: "Premium"
-  }
-];
+import CourseGrid from '../components/ui/CourseGrid.jsx';
+import { Award } from 'lucide-react';
 ---
 
 <BaseLayout title="Cursos Profesionales" description="Capacitación técnica certificada">
   
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     
-    {/* HEADER LIMPIO (Sin mt-12 extra) */}
     <div class="text-center mb-16 relative">
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-volt-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
-      
       <span class="inline-block py-1 px-3 rounded-full bg-volt-secondary/10 border border-volt-secondary/30 text-volt-secondary text-xs font-bold tracking-widest mb-4 uppercase">
         Centro de Entrenamiento
       </span>
@@ -66,109 +18,28 @@ const courses = [
         Mejora tus <span class="text-transparent bg-clip-text bg-gradient-to-r from-volt-primary to-volt-secondary">Habilidades</span>
       </h1>
       <p class="text-slate-400 max-w-2xl mx-auto text-lg">
-        Ruta de aprendizaje estructurada. Desbloquea nuevos niveles de conocimiento técnico y certifícate.
+        Desbloquea contenido premium y lleva tu carrera al siguiente nivel.
       </p>
     </div>
 
-    {/* GRID DE CURSOS */}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-      
-      {courses.map((course) => (
-        <div class={`group relative rounded-2xl border transition-all duration-300 overflow-hidden ${
-            course.status === 'locked' 
-            ? 'bg-volt-dark/30 border-white/5 grayscale opacity-70 hover:opacity-100 hover:grayscale-0' 
-            : 'bg-volt-dark/60 border-volt-primary/20 hover:border-volt-primary hover:shadow-[0_0_30px_rgba(0,240,255,0.15)]'
-        }`}>
-            
-            <div class="flex flex-col md:flex-row h-full">
-                
-                {/* Imagen del Curso */}
-                <div class="w-full md:w-2/5 h-64 md:h-auto relative overflow-hidden">
-                    <img src={course.image} alt={course.title} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    
-                    {course.status === 'locked' && (
-                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-[2px]">
-                            <Lock className="w-10 h-10 text-slate-400" />
-                        </div>
-                    )}
-                </div>
+    <CourseGrid client:load />
 
-                {/* Contenido */}
-                <div class="p-6 md:w-3/5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class={`text-xs font-bold px-2 py-1 rounded uppercase ${
-                                course.level === 'Principiante' ? 'bg-green-500/10 text-green-400' :
-                                course.level === 'Intermedio' ? 'bg-yellow-500/10 text-yellow-400' :
-                                'bg-red-500/10 text-red-400'
-                            }`}>
-                                {course.level}
-                            </span>
-                            {course.status === 'available' && (
-                                <span class="text-volt-primary text-xs font-bold border border-volt-primary/50 px-2 py-1 rounded">
-                                    {course.price}
-                                </span>
-                            )}
-                        </div>
-
-                        <h3 class="text-xl font-bold text-white mb-2 font-display group-hover:text-volt-primary transition-colors">
-                            {course.title}
-                        </h3>
-                        <p class="text-sm text-slate-400 mb-4 line-clamp-2">
-                            {course.desc}
-                        </p>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center gap-4 text-xs text-slate-500 mb-4 font-mono">
-                            <div class="flex items-center gap-1">
-                                <BarChart className="w-3 h-3" /> {course.modules} Módulos
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> {course.hours}h
-                            </div>
-                        </div>
-
-                        {course.status === 'available' ? (
-                            <button class="w-full py-2 bg-volt-primary text-volt-dark font-bold rounded flex items-center justify-center gap-2 hover:bg-white transition-colors">
-                                <Play className="w-4 h-4" /> Iniciar Ahora
-                            </button>
-                        ) : (
-                            <button class="w-full py-2 bg-white/5 text-slate-400 font-bold rounded border border-white/10 cursor-not-allowed flex items-center justify-center gap-2">
-                                <Clock className="w-4 h-4" /> Próximamente
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-        </div>
-      ))}
-
-    </div>
-
-    {/* SECCIÓN DE CERTIFICACIÓN */}
+    {/* SECCIÓN DE CERTIFICACIÓN (Estática) */}
     <div class="mt-20 p-8 rounded-3xl bg-gradient-to-r from-volt-secondary/20 to-volt-dark border border-volt-secondary/30 relative overflow-hidden text-center md:text-left">
         <div class="absolute top-0 right-0 p-12 opacity-10">
             <Award className="w-64 h-64 text-volt-secondary rotate-12" />
         </div>
-        
         <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <div class="p-4 bg-volt-secondary/20 rounded-full border border-volt-secondary shadow-[0_0_20px_rgba(112,0,255,0.3)]">
                 <Award className="w-12 h-12 text-volt-secondary" />
             </div>
             <div>
                 <h2 class="text-2xl md:text-3xl font-display font-bold text-white mb-2">
-                    Certificación Oficial VoltioAcademy
+                    Certificación Oficial
                 </h2>
                 <p class="text-slate-300 max-w-xl">
-                    Al completar todos los módulos, obtendrás un certificado digital validado con blockchain, listo para agregar a tu LinkedIn.
+                    Al completar todos los módulos, obtendrás un certificado digital validado en blockchain.
                 </p>
-            </div>
-            <div class="md:ml-auto">
-                 <button class="px-8 py-3 bg-white text-black font-bold rounded-lg hover:bg-volt-secondary hover:text-white transition-all shadow-lg">
-                    Más Información
-                 </button>
             </div>
         </div>
     </div>
