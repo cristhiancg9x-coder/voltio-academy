@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdminDashboard from '../components/ui/AdminDashboard.jsx';
+---
+
+<BaseLayout title="Administración" description="Panel de control interno">
+  <div class="py-16 mt-10 px-4">
+      <AdminDashboard client:only="react" />
+  </div>
+</BaseLayout>
