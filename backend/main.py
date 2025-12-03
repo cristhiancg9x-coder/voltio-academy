@@ -5,6 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Field, SQLModel, create_engine, Session, select
 from dotenv import load_dotenv
 from pydantic import BaseModel
+# NUEVAS IMPORTACIONES PARA PDF
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, landscape
+from fastapi.responses import StreamingResponse
+import io
+from datetime import date
 
 # 1. CONFIGURACIÓN
 load_dotenv()
@@ -117,3 +123,84 @@ def corregir_examen(datos: RespuestasExamen):
         "aciertos": puntaje,
         "mensaje": "¡Aprobaste, Felicidades!" if aprobado else "Sigue estudiando, inténtalo de nuevo."
     }
+
+# --- RUTA GENERAR CERTIFICADO ---
+@app.get("/api/certificado/{nombre_alumno}")
+def generar_certificado(nombre_alumno: str):
+    # 1. Crear un buffer de memoria (un archivo virtual)
+    buffer = io.BytesIO()
+
+    # 2. Configurar el lienzo (Canvas)
+    # Usamos tamaño carta horizontal (landscape)
+    c = canvas.Canvas(buffer, pagesize=landscape(letter))
+    ancho, alto = landscape(letter)
+
+    # 3. DIBUJAR EL DISEÑO (Como si pintaras en un cuadro)
+    
+    # Fondo o Borde
+    c.setStrokeColorRGB(0, 0.8, 1) # Color Cyan (Voltio)
+    c.setLineWidth(5)
+    c.rect(30, 30, ancho-60, alto-60) # Marco exterior
+
+    # Título
+    c.setFont("Helvetica-Bold", 40)
+    c.drawCentredString(ancho/2, alto - 150, "CERTIFICADO DE APROBACIÓN")
+
+    # Texto
+    c.setFont("Helvetica", 20)
+    c.drawCentredString(ancho/2, alto - 220, "VoltioAcademy certifica que:")
+    
+    # Nombre del Alumno (Dinámico)
+    c.setFont("Helvetica-Bold", 35)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawCentredString(ancho/2, alto - 280, nombre_alumno.upper())
+
+    # Descripción
+    c.setFont("Helvetica", 16)
+    c.setFillColorRGB(0, 0, 0)
+    c.drawCentredString(ancho/2, alto - 340, "Ha aprobado satisfactoriamente el examen de:")
+    c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(ancho/2, alto - 370, "SEGURIDAD ELÉCTRICA - CNE 2025")
+
+    # Fecha
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawString(100, 80, f"Fecha de emisión: {date.today()}")
+
+    # Firma (Simulada)
+    c.line(ancho - 250, 100, ancho - 50, 100)
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(ancho - 150, 85, "Ing. Director General")
+    c.drawCentredString(ancho - 150, 70, "VoltioAcademy")
+
+    # 4. Finalizar y guardar en el buffer
+    c.showPage()
+    c.save()
+
+    # 5. Mover el puntero al inicio del archivo virtual
+    buffer.seek(0)
+
+    # 6. Devolver el archivo al navegador
+    return StreamingResponse(
+        buffer, 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=Certificado_{nombre_alumno}.pdf"}
+    )
+
+# --- RUTAS DE ADMINISTRACIÓN ---
+
+# Ver todos los suscriptores
+@app.get("/api/admin/suscriptores")
+def listar_suscriptores():
+    with Session(engine) as session:
+        statement = select(Suscriptor)
+        resultados = session.exec(statement).all()
+        return resultados
+
+# Ver todos los resultados de exámenes
+@app.get("/api/admin/examenes")
+def listar_examenes():
+    with Session(engine) as session:
+        # Ordenamos por ID descendente (los más recientes primero)
+        statement = select(ExamenResultado).order_by(ExamenResultado.id.desc())
+        resultados = session.exec(statement).all()
+        return resultados
