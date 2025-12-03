@@ -12,9 +12,8 @@ export default function AIChatbot() {
   const messagesEndRef = useRef(null);
 
   // Leemos la clave del archivo .env
-  const API_KEY = import.meta.env.PUBLIC_GEMINI_API_KEY; // ✅ ESTO ES SEGURO
+  const API_KEY = import.meta.env.PUBLIC_GEMINI_API_KEY;
 
-  // Auto-scroll al último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -26,22 +25,17 @@ export default function AIChatbot() {
     setInputText('');
     setLoading(true);
 
-    // 1. Agregamos mensaje del usuario
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
 
     try {
-      // 2. Conexión Directa a Gemini 1.5 Flash
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               parts: [{
-                // Prompt del sistema para darle personalidad
                 text: `Actúa como VoltioBot, un ingeniero eléctrico senior experto en normativa peruana (CNE). 
                        Responde a la siguiente consulta de forma técnica, segura y breve: "${userMessage}"`
               }]
@@ -57,7 +51,6 @@ export default function AIChatbot() {
         throw new Error(data.error?.message || "Error desconocido en la API");
       }
 
-      // 3. Extraemos la respuesta
       const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (aiResponse) {
@@ -70,7 +63,6 @@ export default function AIChatbot() {
       console.error("Fallo en el Chatbot:", error);
       let errorMsg = "Tuve un cortocircuito interno 💥.";
       
-      // Mensajes de error amigables
       if (error.message.includes("API key")) errorMsg = "Error: Mi llave de acceso (API Key) no es válida.";
       if (error.message.includes("404")) errorMsg = "Error: No encuentro el modelo de IA.";
       
@@ -89,19 +81,26 @@ export default function AIChatbot() {
         whileTap={{ scale: 0.9 }}
         className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-volt-primary to-volt-secondary rounded-full shadow-[0_0_20px_rgba(0,240,255,0.6)] z-50 transition-shadow group"
       >
-        {/* Efecto de brillo */}
         <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
         <Sparkles className="w-6 h-6 text-black fill-current" />
       </motion.button>
 
-      {/* VENTANA DEL CHAT */}
+      {/* VENTANA DEL CHAT (ARREGLO MÓVIL APLICADO) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-24 right-6 w-96 h-[500px] bg-volt-dark/95 backdrop-blur-xl border border-volt-primary/30 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            /* CAMBIOS RESPONSIVOS AQUI:
+               1. w-[90%] -> En celular ocupa el 90% del ancho (no se sale).
+               2. md:w-96 -> En PC vuelve a su tamaño fijo.
+               3. right-0 left-0 mx-auto -> Centrado perfecto en celular.
+               4. md:right-6 md:left-auto -> En PC se va a la esquina.
+               5. bottom-24 -> Un poco más arriba para no chocar con el teclado.
+               6. max-h-[60vh] -> Para que no sea muy alto si sale el teclado.
+            */
+            className="fixed bottom-24 right-0 left-0 mx-auto w-[90%] md:w-96 md:right-6 md:left-auto h-[60vh] md:h-[500px] bg-volt-dark/95 backdrop-blur-xl border border-volt-primary/30 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-volt-primary/10 to-transparent border-b border-white/10 flex justify-between items-center">
@@ -154,7 +153,7 @@ export default function AIChatbot() {
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Escribe tu consulta técnica..."
+                    placeholder="Escribe tu consulta..."
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-volt-primary focus:ring-1 focus:ring-volt-primary outline-none transition-all placeholder:text-slate-600"
                 />
                 <button 
