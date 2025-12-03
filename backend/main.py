@@ -224,3 +224,30 @@ def obtener_mis_cursos(email: str):
         resultados = session.exec(statement).all()
         # Retornamos solo los IDs de los cursos comprados
         return [compra.curso_id for compra in resultados]
+    
+class Curso(SQLModel, table=True):
+    id: str = Field(primary_key=True) # Ej: "solar-master"
+    titulo: str
+    precio: float
+    es_premium: bool = Field(default=True) # Aquí está la clave
+
+@app.get("/api/curso/{curso_id}/contenido")
+def obtener_contenido(curso_id: str, email_usuario: str):
+    with Session(engine) as session:
+        # 1. Buscar el curso
+        curso = session.get(Curso, curso_id)
+        
+        # 2. Si es GRATIS -> Pase directo
+        if not curso.es_premium:
+            return {"video_url": "https://youtube.com/..."}
+            
+        # 3. Si es PREMIUM -> Verificar si pagó
+        compra = session.exec(select(Compra).where(
+            Compra.email == email_usuario, 
+            Compra.curso_id == curso_id
+        )).first()
+        
+        if compra:
+            return {"video_url": "https://vimeo.com/secreto..."}
+        else:
+            return {"error": "Acceso denegado. Debes comprar este curso."}

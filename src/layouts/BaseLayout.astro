@@ -3,6 +3,7 @@
 import '../styles/global.css';
 import Navbar from '../components/ui/Navbar.jsx';
 import Footer from '../components/ui/Footer.astro';
+import AIChatbot from '../components/ui/AIChatbot.jsx';
 
 interface Props {
 	title: string;
@@ -55,6 +56,6 @@ const { title, description = "Aprende electricidad desde cero hasta nivel expert
             <slot />
         </div>
         <Footer />
-        
+        <AIChatbot client:load />
 	</body>
 </html>
