@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Play, Lock, Clock, BarChart, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
+import { Play, Lock, Clock, BarChart, CreditCard, Loader2 } from 'lucide-react';
 
 const coursesData = [
   {
@@ -52,11 +52,11 @@ const coursesData = [
 export default function CourseGrid() {
   const [user, setUser] = useState(null);
   const [myCourses, setMyCourses] = useState([]);
-  const [loading, setLoading] = useState(false); // Para el botón de compra
+  const [loading, setLoading] = useState(false); 
 
   const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-  // 1. Cargar usuario y sus compras al iniciar
+  // 1. Cargar usuario y sus compras
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -74,8 +74,6 @@ export default function CourseGrid() {
     };
     init();
   }, []);
-
-  // src/components/ui/CourseGrid.jsx
 
   const handleBuy = async (courseId) => {
     if (!user) {
@@ -112,7 +110,7 @@ export default function CourseGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
       {coursesData.map((course) => {
-        // ¿Está desbloqueado? (Si es gratis O si ya lo compré)
+        // ¿Está desbloqueado?
         const isUnlocked = course.isFree || myCourses.includes(course.id);
 
         return (
@@ -125,7 +123,12 @@ export default function CourseGrid() {
               <div className="flex flex-col md:flex-row h-full">
                   {/* Imagen */}
                   <div className="w-full md:w-2/5 h-64 md:h-auto relative overflow-hidden">
-                      <img src={course.image} alt={course.title} class={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isUnlocked && 'grayscale'}`} />
+                      {/* CORRECCIÓN: className en lugar de class */}
+                      <img 
+                        src={course.image} 
+                        alt={course.title} 
+                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isUnlocked && 'grayscale'}`} 
+                      />
                       
                       {!isUnlocked && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-[2px]">
@@ -143,7 +146,8 @@ export default function CourseGrid() {
                               </span>
                               {!isUnlocked && (
                                   <span className="text-volt-secondary text-xs font-bold border border-volt-secondary/50 px-2 py-1 rounded">
-                                      ${course.price} USD
+                                      {/* CORRECCIÓN: Moneda S/ (Soles) */}
+                                      S/ {course.price}
                                   </span>
                               )}
                           </div>
@@ -151,6 +155,14 @@ export default function CourseGrid() {
                           <h3 className={`text-xl font-bold mb-2 font-display ${isUnlocked ? 'text-white group-hover:text-volt-primary' : 'text-slate-400'}`}>
                               {course.title}
                           </h3>
+                          <div className="flex items-center gap-4 text-xs text-slate-500 mb-4 font-mono">
+                            <div className="flex items-center gap-1">
+                                <BarChart className="w-3 h-3" /> {course.modules} Mód.
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> {course.hours}h
+                            </div>
+                        </div>
                       </div>
 
                       <div className="mt-4">

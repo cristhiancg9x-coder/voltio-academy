@@ -24,9 +24,10 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 engine = create_engine(DATABASE_URL)
 
-# Mercado Pago (Lo dejamos listo para cuando te verifiquen)
+# Mercado Pago
+# Intentamos cargar el token. Si no existe, sdk será None.
 MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
-# Si no hay token, el SDK fallará al usarse, pero no rompe el servidor al inicio
+sdk = None
 if MP_ACCESS_TOKEN:
     sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
@@ -91,30 +92,25 @@ def read_root():
 def check_status():
     return {"sistema": "API Real", "db": "PostgreSQL", "estado": "OK"}
 
-# --- SUSCRIPCIONES (LIMPIO: Solo guarda en DB) ---
+# --- SUSCRIPCIONES (Solo DB) ---
 @app.post("/api/subscribe")
 def suscribir_usuario(suscriptor: Suscriptor):
     with Session(engine) as session:
-        # 1. Verificar si ya existe
         statement = select(Suscriptor).where(Suscriptor.email == suscriptor.email)
         if session.exec(statement).first():
             return {"mensaje": "Ya estás registrado."}
         
-        # 2. Guardar en Base de Datos
         session.add(suscriptor)
         session.commit()
-
-        # YA NO HAY ENVÍO DE CORREO AQUÍ
-        print(f"✅ Nuevo suscriptor guardado: {suscriptor.email}")
-
+        # Nota: Aquí quitamos el envío de correo por ahora
         return {"mensaje": "Suscripción exitosa."}
 
 # --- VENTAS CON MERCADO PAGO ---
 @app.post("/api/crear-pago")
 def crear_pago(solicitud: SolicitudCompra):
-    # Si no hay token configurado, avisamos
-    if not MP_ACCESS_TOKEN:
-        return {"error": "Pasarela de pagos en mantenimiento."}
+    # Validación de seguridad: Si no hay SDK, no podemos cobrar
+    if not sdk:
+        return {"error": "El sistema de pagos se está configurando. Intenta más tarde."}
 
     precios = {
         "automatizacion-pro": 150.00,
@@ -148,23 +144,25 @@ def crear_pago(solicitud: SolicitudCompra):
         }
     }
 
-# Llamamos a Mercado Pago
-    preference_response = sdk.preference().create(preference_data)
-    preference = preference_response["response"]
-
-    # Devolvemos el LINK de pago al Frontend
-    return {"init_point": preference["init_point"]}
-
+    try:
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+        return {"init_point": preference["init_point"]}
+    except Exception as e:
+        print(f"Error MercadoPago: {e}")
+        return {"error": "No se pudo conectar con Mercado Pago"}
 
 @app.post("/api/webhook/mercadopago")
 async def recibir_notificacion(request: Request):
-    if not MP_ACCESS_TOKEN:
+    if not sdk:
         return {"status": "error", "message": "MP no configurado"}
         
     try:
         data = await request.json()
         if data.get("type") == "payment":
             payment_id = data.get("data", {}).get("id")
+            
+            # Consultar estado
             payment_info = sdk.payment().get(payment_id)
             payment = payment_info["response"]
             
@@ -175,6 +173,7 @@ async def recibir_notificacion(request: Request):
                 monto = payment.get("transaction_amount")
                 
                 with Session(engine) as session:
+                    # Evitar duplicados
                     statement = select(Compra).where(
                         Compra.email == email_usuario, 
                         Compra.curso_id == curso_id
@@ -258,6 +257,7 @@ def generar_certificado(nombre_alumno: str):
     c.drawCentredString(ancho/2, alto - 370, "SEGURIDAD ELÉCTRICA - CNE 2025")
     c.setFont("Helvetica-Oblique", 12)
     c.drawString(100, 80, f"Fecha de emisión: {date.today()}")
+    
     c.line(ancho - 250, 100, ancho - 50, 100)
     c.setFont("Helvetica", 10)
     c.drawCentredString(ancho - 150, 85, "Ing. Director General")
