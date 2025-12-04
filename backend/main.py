@@ -112,8 +112,8 @@ def crear_pago(solicitud: SolicitudCompra):
 
     # 1. Definir producto
     precios = {
-        "automatizacion-pro": 150.00,
-        "solar-master": 90.00 # Ajustado a lo que pediste
+        "automatizacion-pro": 1,
+        "solar-master": 1 # Ajustado a lo que pediste
     }
     precio = precios.get(solicitud.curso_id, 100.00)
     titulo = solicitud.curso_id.replace("-", " ").title()
