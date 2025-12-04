@@ -1,5 +1,7 @@
 import os
 import io
+import resend # <--- NUEVO
+
 from datetime import datetime, date
 from typing import List
 
@@ -20,6 +22,9 @@ from reportlab.lib.pagesizes import letter, landscape
 # --- 1. CONFIGURACIÓN DE LA BASE DE DATOS ---
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Configurar Resend
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 # Corrección para Supabase (necesita postgresql:// en vez de postgres://)
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
@@ -92,17 +97,47 @@ def read_root():
 def check_status():
     return {"sistema": "API Real", "db": "PostgreSQL", "estado": "OK"}
 
-# --- MÓDULO: SUSCRIPCIONES ---
+# --- SUSCRIPCIONES CON EMAIL ---
 @app.post("/api/subscribe")
 def suscribir_usuario(suscriptor: Suscriptor):
     with Session(engine) as session:
+        # 1. Verificar si ya existe
         statement = select(Suscriptor).where(Suscriptor.email == suscriptor.email)
         if session.exec(statement).first():
             return {"mensaje": "Ya estás registrado."}
         
+        # 2. Guardar en Base de Datos
         session.add(suscriptor)
         session.commit()
-        return {"mensaje": "Suscripción exitosa."}
+
+        # 3. ENVIAR CORREO DE BIENVENIDA (¡La magia!)
+        try:
+            r = resend.Emails.send({
+                "from": "onboarding@resend.dev", # Remitente de prueba
+                "to": suscriptor.email,          # Destinatario
+                "subject": "¡Bienvenido a VoltioAcademy! ⚡",
+                "html": """
+                <div style="font-family: sans-serif; color: #333;">
+                    <h1>¡Gracias por unirte, colega! 👷‍♂️</h1>
+                    <p>Soy el Director de <strong>VoltioAcademy</strong>. Me alegra tenerte aquí.</p>
+                    <p>A partir de ahora recibirás:</p>
+                    <ul>
+                        <li>Tips de normativa CNE.</li>
+                        <li>Descuentos exclusivos en cursos.</li>
+                        <li>Guías técnicas en PDF.</li>
+                    </ul>
+                    <br>
+                    <p><em>¡A darle con energía!</em> ⚡</p>
+                    <p>Atte. El Equipo Voltio</p>
+                </div>
+                """
+            })
+            print(f"📧 Correo enviado ID: {r}")
+        except Exception as e:
+            print(f"❌ Error enviando correo: {e}")
+            # No fallamos la petición, solo avisamos en consola
+
+        return {"mensaje": "Suscripción exitosa. Revisa tu correo."}
 
 # --- MÓDULO: EXÁMENES ---
 @app.post("/api/examen/submit")
