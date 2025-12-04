@@ -113,8 +113,8 @@ def crear_pago(solicitud: SolicitudCompra):
         return {"error": "El sistema de pagos se está configurando. Intenta más tarde."}
 
     precios = {
-        "automatizacion-pro": 150.00,
-        "solar-master": 250.00
+        "automatizacion-pro": 1.00,
+        "solar-master": 1.00
     }
     precio = precios.get(solicitud.curso_id, 100.00)
     titulo = solicitud.curso_id.replace("-", " ").title()
