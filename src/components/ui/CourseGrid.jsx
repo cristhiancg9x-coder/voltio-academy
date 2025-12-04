@@ -33,7 +33,7 @@ const coursesData = [
     modules: 20,
     hours: 15,
     image: "https://images.unsplash.com/photo-1565514020125-28b3d64024c0?q=80&w=1000&auto=format&fit=crop",
-    price: 49.99,
+    price: 150,
     isFree: false
   },
   {
@@ -44,7 +44,7 @@ const coursesData = [
     modules: 15,
     hours: 12,
     image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1000&auto=format&fit=crop",
-    price: 89.99,
+    price: 250,
     isFree: false
   }
 ];
