@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Loader2, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown'; // <--- NUEVA IMPORTACIÓN
 
 export default function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +12,6 @@ export default function AIChatbot() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Leemos la clave del archivo .env
   const API_KEY = import.meta.env.PUBLIC_GEMINI_API_KEY;
 
   useEffect(() => {
@@ -74,36 +74,24 @@ export default function AIChatbot() {
 
   return (
     <>
-      {/* BOTÓN FLOTANTE */}
       <motion.button
         onClick={() => setIsOpen(true)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        /* CORRECCIÓN DE POSICIÓN AQUÍ:
-           - bottom-20: En móvil (se sube para dejar espacio a la barra de navegación).
-           - md:bottom-6: En PC (se queda en la esquina normal).
-        */
         className="fixed bottom-20 md:bottom-6 right-6 p-4 bg-gradient-to-r from-volt-primary to-volt-secondary rounded-full shadow-[0_0_20px_rgba(0,240,255,0.6)] z-50 transition-shadow group"
       >
         <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
         <Sparkles className="w-6 h-6 text-black fill-current" />
       </motion.button>
 
-      {/* VENTANA DEL CHAT */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            /* CORRECCIÓN DE POSICIÓN DE LA VENTANA:
-               - bottom-32: En móvil (más arriba que el botón).
-               - md:bottom-24: En PC.
-               - w-[90%]: Ancho adaptable en móvil.
-            */
             className="fixed bottom-32 md:bottom-24 right-0 left-0 mx-auto w-[90%] md:w-96 md:right-6 md:left-auto h-[60vh] md:h-[500px] bg-volt-dark/95 backdrop-blur-xl border border-volt-primary/30 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="p-4 bg-gradient-to-r from-volt-primary/10 to-transparent border-b border-white/10 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-volt-primary/20 rounded-full border border-volt-primary/30">
@@ -122,7 +110,6 @@ export default function AIChatbot() {
                 </button>
             </div>
 
-            {/* Área de Mensajes */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-volt-primary/20 scrollbar-track-transparent">
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -131,7 +118,18 @@ export default function AIChatbot() {
                             ? 'bg-volt-primary text-volt-dark font-medium rounded-tr-none shadow-lg' 
                             : 'bg-white/5 text-slate-200 border border-white/10 rounded-tl-none'
                         }`}>
-                            {msg.text}
+                            {/* AQUI ESTÁ LA MAGIA: Renderizamos Markdown en lugar de texto plano */}
+                            <ReactMarkdown 
+                                components={{
+                                    // Estilos personalizados para elementos dentro del chat
+                                    strong: ({node, ...props}) => <span className="font-bold text-white" {...props} />,
+                                    ul: ({node, ...props}) => <ul className="list-disc pl-4 mt-2 mb-2 space-y-1" {...props} />,
+                                    li: ({node, ...props}) => <li className="text-slate-300" {...props} />,
+                                    p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />
+                                }}
+                            >
+                                {msg.text}
+                            </ReactMarkdown>
                         </div>
                     </div>
                 ))}
@@ -147,7 +145,6 @@ export default function AIChatbot() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="p-4 border-t border-white/10 bg-black/20 flex gap-2">
                 <input
                     type="text"
