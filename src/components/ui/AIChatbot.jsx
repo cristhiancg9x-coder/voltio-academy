@@ -79,28 +79,29 @@ export default function AIChatbot() {
         onClick={() => setIsOpen(true)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-volt-primary to-volt-secondary rounded-full shadow-[0_0_20px_rgba(0,240,255,0.6)] z-50 transition-shadow group"
+        /* CORRECCIÓN DE POSICIÓN AQUÍ:
+           - bottom-20: En móvil (se sube para dejar espacio a la barra de navegación).
+           - md:bottom-6: En PC (se queda en la esquina normal).
+        */
+        className="fixed bottom-20 md:bottom-6 right-6 p-4 bg-gradient-to-r from-volt-primary to-volt-secondary rounded-full shadow-[0_0_20px_rgba(0,240,255,0.6)] z-50 transition-shadow group"
       >
         <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
         <Sparkles className="w-6 h-6 text-black fill-current" />
       </motion.button>
 
-      {/* VENTANA DEL CHAT (ARREGLO MÓVIL APLICADO) */}
+      {/* VENTANA DEL CHAT */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            /* CAMBIOS RESPONSIVOS AQUI:
-               1. w-[90%] -> En celular ocupa el 90% del ancho (no se sale).
-               2. md:w-96 -> En PC vuelve a su tamaño fijo.
-               3. right-0 left-0 mx-auto -> Centrado perfecto en celular.
-               4. md:right-6 md:left-auto -> En PC se va a la esquina.
-               5. bottom-24 -> Un poco más arriba para no chocar con el teclado.
-               6. max-h-[60vh] -> Para que no sea muy alto si sale el teclado.
+            /* CORRECCIÓN DE POSICIÓN DE LA VENTANA:
+               - bottom-32: En móvil (más arriba que el botón).
+               - md:bottom-24: En PC.
+               - w-[90%]: Ancho adaptable en móvil.
             */
-            className="fixed bottom-24 right-0 left-0 mx-auto w-[90%] md:w-96 md:right-6 md:left-auto h-[60vh] md:h-[500px] bg-volt-dark/95 backdrop-blur-xl border border-volt-primary/30 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-32 md:bottom-24 right-0 left-0 mx-auto w-[90%] md:w-96 md:right-6 md:left-auto h-[60vh] md:h-[500px] bg-volt-dark/95 backdrop-blur-xl border border-volt-primary/30 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-volt-primary/10 to-transparent border-b border-white/10 flex justify-between items-center">
