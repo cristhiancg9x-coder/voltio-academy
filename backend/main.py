@@ -1,39 +1,36 @@
 import os
 import io
-import resend # <--- NUEVO
-
+import mercadopago
 from datetime import datetime, date
 from typing import List
 
-# FastAPI y Servidor
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-# Base de Datos
 from sqlmodel import Field, SQLModel, create_engine, Session, select
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-# PDF (ReportLab)
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, landscape
 
-# --- 1. CONFIGURACIÓN DE LA BASE DE DATOS ---
+# --- 1. CONFIGURACIÓN ---
 load_dotenv()
+
+# Base de Datos
 DATABASE_URL = os.getenv("DATABASE_URL")
-
-# Configurar Resend
-resend.api_key = os.getenv("RESEND_API_KEY")
-
-# Corrección para Supabase (necesita postgresql:// en vez de postgres://)
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
 engine = create_engine(DATABASE_URL)
 
-# --- 2. MODELOS DE DATOS (TABLAS) ---
+# Mercado Pago (Lo dejamos listo para cuando te verifiquen)
+MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
+# Si no hay token, el SDK fallará al usarse, pero no rompe el servidor al inicio
+if MP_ACCESS_TOKEN:
+    sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
+# --- 2. MODELOS ---
 class Suscriptor(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     email: str
@@ -50,8 +47,7 @@ class Compra(SQLModel, table=True):
     curso_id: str
     fecha: str
     monto: float
-
-# --- MODELOS DE ENTRADA (Esquemas para recibir datos) ---
+    payment_id: str | None = None 
 
 class RespuestasExamen(BaseModel):
     email: str
@@ -61,17 +57,15 @@ class SolicitudCompra(BaseModel):
     email: str
     curso_id: str
 
-# Función para crear las tablas
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-# --- 3. INICIALIZACIÓN DE LA APP ---
+# --- 3. APP ---
 app = FastAPI()
 
-# Configuración de Seguridad (CORS)
 origins = [
-    "http://localhost:4321",      # Tu PC
-    "https://voltioacademy.lat",  # Tu Web
+    "http://localhost:4321",
+    "https://voltioacademy.lat",
     "https://www.voltioacademy.lat"
 ]
 
@@ -87,7 +81,7 @@ app.add_middleware(
 def on_startup():
     create_db_and_tables()
 
-# --- 4. RUTAS (ENDPOINTS) ---
+# --- 4. RUTAS ---
 
 @app.get("/")
 def read_root():
@@ -97,7 +91,7 @@ def read_root():
 def check_status():
     return {"sistema": "API Real", "db": "PostgreSQL", "estado": "OK"}
 
-# --- SUSCRIPCIONES CON EMAIL ---
+# --- SUSCRIPCIONES (LIMPIO: Solo guarda en DB) ---
 @app.post("/api/subscribe")
 def suscribir_usuario(suscriptor: Suscriptor):
     with Session(engine) as session:
@@ -110,39 +104,108 @@ def suscribir_usuario(suscriptor: Suscriptor):
         session.add(suscriptor)
         session.commit()
 
-        # 3. ENVIAR CORREO DE BIENVENIDA (¡La magia!)
-        try:
-            r = resend.Emails.send({
-                "from": "onboarding@resend.dev", # Remitente de prueba
-                "to": suscriptor.email,          # Destinatario
-                "subject": "¡Bienvenido a VoltioAcademy! ⚡",
-                "html": """
-                <div style="font-family: sans-serif; color: #333;">
-                    <h1>¡Gracias por unirte, colega! 👷‍♂️</h1>
-                    <p>Soy el Director de <strong>VoltioAcademy</strong>. Me alegra tenerte aquí.</p>
-                    <p>A partir de ahora recibirás:</p>
-                    <ul>
-                        <li>Tips de normativa CNE.</li>
-                        <li>Descuentos exclusivos en cursos.</li>
-                        <li>Guías técnicas en PDF.</li>
-                    </ul>
-                    <br>
-                    <p><em>¡A darle con energía!</em> ⚡</p>
-                    <p>Atte. El Equipo Voltio</p>
-                </div>
-                """
-            })
-            print(f"📧 Correo enviado ID: {r}")
-        except Exception as e:
-            print(f"❌ Error enviando correo: {e}")
-            # No fallamos la petición, solo avisamos en consola
+        # YA NO HAY ENVÍO DE CORREO AQUÍ
+        print(f"✅ Nuevo suscriptor guardado: {suscriptor.email}")
 
-        return {"mensaje": "Suscripción exitosa. Revisa tu correo."}
+        return {"mensaje": "Suscripción exitosa."}
 
-# --- MÓDULO: EXÁMENES ---
+# --- VENTAS CON MERCADO PAGO ---
+@app.post("/api/crear-pago")
+def crear_pago(solicitud: SolicitudCompra):
+    # Si no hay token configurado, avisamos
+    if not MP_ACCESS_TOKEN:
+        return {"error": "Pasarela de pagos en mantenimiento."}
+
+    precios = {
+        "automatizacion-pro": 150.00,
+        "solar-master": 250.00
+    }
+    precio = precios.get(solicitud.curso_id, 100.00)
+    titulo = solicitud.curso_id.replace("-", " ").title()
+
+    preference_data = {
+        "items": [
+            {
+                "id": solicitud.curso_id,
+                "title": f"Curso: {titulo}",
+                "quantity": 1,
+                "currency_id": "PEN",
+                "unit_price": precio
+            }
+        ],
+        "payer": {
+            "email": solicitud.email
+        },
+        "back_urls": {
+            "success": "https://voltioacademy.lat/cursos",
+            "failure": "https://voltioacademy.lat/cursos",
+            "pending": "https://voltioacademy.lat/cursos"
+        },
+        "auto_return": "approved",
+        "metadata": {
+            "user_email": solicitud.email,
+            "course_id": solicitud.curso_id
+        }
+    }
+
+# Llamamos a Mercado Pago
+    preference_response = sdk.preference().create(preference_data)
+    preference = preference_response["response"]
+
+    # Devolvemos el LINK de pago al Frontend
+    return {"init_point": preference["init_point"]}
+
+
+@app.post("/api/webhook/mercadopago")
+async def recibir_notificacion(request: Request):
+    if not MP_ACCESS_TOKEN:
+        return {"status": "error", "message": "MP no configurado"}
+        
+    try:
+        data = await request.json()
+        if data.get("type") == "payment":
+            payment_id = data.get("data", {}).get("id")
+            payment_info = sdk.payment().get(payment_id)
+            payment = payment_info["response"]
+            
+            if payment["status"] == "approved":
+                metadata = payment.get("metadata", {})
+                email_usuario = metadata.get("user_email")
+                curso_id = metadata.get("course_id")
+                monto = payment.get("transaction_amount")
+                
+                with Session(engine) as session:
+                    statement = select(Compra).where(
+                        Compra.email == email_usuario, 
+                        Compra.curso_id == curso_id
+                    )
+                    if not session.exec(statement).first():
+                        nueva_compra = Compra(
+                            email=email_usuario,
+                            curso_id=curso_id,
+                            fecha=str(datetime.now()),
+                            monto=monto,
+                            payment_id=str(payment_id)
+                        )
+                        session.add(nueva_compra)
+                        session.commit()
+                        print(f"💰 PAGO CONFIRMADO: {email_usuario} - {curso_id}")
+                        
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"Error webhook: {e}")
+        return {"status": "error"}
+
+@app.get("/api/mis-cursos/{email}")
+def obtener_mis_cursos(email: str):
+    with Session(engine) as session:
+        statement = select(Compra).where(Compra.email == email)
+        resultados = session.exec(statement).all()
+        return [compra.curso_id for compra in resultados]
+
+# --- EXÁMENES ---
 @app.post("/api/examen/submit")
 def corregir_examen(datos: RespuestasExamen):
-    # Claves correctas (A, B, A)
     claves_correctas = ["A", "B", "A"] 
     puntaje = 0
     total = len(claves_correctas)
@@ -153,7 +216,6 @@ def corregir_examen(datos: RespuestasExamen):
     
     nota_final = int((puntaje / total) * 20)
     
-    # Guardar resultado
     nuevo_resultado = ExamenResultado(
         email=datos.email,
         nota=nota_final,
@@ -171,37 +233,31 @@ def corregir_examen(datos: RespuestasExamen):
         "mensaje": "¡Aprobaste, Felicidades!" if aprobado else "Sigue estudiando."
     }
 
-# --- MÓDULO: CERTIFICADOS PDF ---
+# --- CERTIFICADOS ---
 @app.get("/api/certificado/{nombre_alumno}")
 def generar_certificado(nombre_alumno: str):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=landscape(letter))
     ancho, alto = landscape(letter)
 
-    # Diseño del Diploma
-    c.setStrokeColorRGB(0, 0.8, 1) # Cyan
+    c.setStrokeColorRGB(0, 0.8, 1)
     c.setLineWidth(5)
     c.rect(30, 30, ancho-60, alto-60)
 
     c.setFont("Helvetica-Bold", 40)
     c.drawCentredString(ancho/2, alto - 150, "CERTIFICADO DE APROBACIÓN")
-
     c.setFont("Helvetica", 20)
     c.drawCentredString(ancho/2, alto - 220, "VoltioAcademy certifica que:")
-    
     c.setFont("Helvetica-Bold", 35)
     c.setFillColorRGB(0.2, 0.2, 0.2)
     c.drawCentredString(ancho/2, alto - 280, nombre_alumno.upper())
-
     c.setFont("Helvetica", 16)
     c.setFillColorRGB(0, 0, 0)
     c.drawCentredString(ancho/2, alto - 340, "Ha aprobado satisfactoriamente el examen de:")
     c.setFont("Helvetica-Bold", 20)
     c.drawCentredString(ancho/2, alto - 370, "SEGURIDAD ELÉCTRICA - CNE 2025")
-
     c.setFont("Helvetica-Oblique", 12)
     c.drawString(100, 80, f"Fecha de emisión: {date.today()}")
-
     c.line(ancho - 250, 100, ancho - 50, 100)
     c.setFont("Helvetica", 10)
     c.drawCentredString(ancho - 150, 85, "Ing. Director General")
@@ -217,7 +273,7 @@ def generar_certificado(nombre_alumno: str):
         headers={"Content-Disposition": f"attachment; filename=Certificado_{nombre_alumno}.pdf"}
     )
 
-# --- MÓDULO: ADMINISTRACIÓN ---
+# --- ADMIN ---
 @app.get("/api/admin/suscriptores")
 def listar_suscriptores():
     with Session(engine) as session:
@@ -227,62 +283,3 @@ def listar_suscriptores():
 def listar_examenes():
     with Session(engine) as session:
         return session.exec(select(ExamenResultado).order_by(ExamenResultado.id.desc())).all()
-
-# --- MÓDULO: VENTAS (NUEVO) ---
-@app.post("/api/comprar")
-def registrar_compra(solicitud: SolicitudCompra):
-    with Session(engine) as session:
-        # Verificar si ya compró
-        statement = select(Compra).where(
-            Compra.email == solicitud.email, 
-            Compra.curso_id == solicitud.curso_id
-        )
-        if session.exec(statement).first():
-            return {"mensaje": "Ya tienes este curso.", "status": "exists"}
-
-        # Registrar compra
-        nueva_compra = Compra(
-            email=solicitud.email,
-            curso_id=solicitud.curso_id,
-            fecha=str(datetime.now()),
-            monto=49.99
-        )
-        session.add(nueva_compra)
-        session.commit()
-        
-        return {"mensaje": "¡Compra exitosa! Curso desbloqueado.", "status": "success"}
-
-@app.get("/api/mis-cursos/{email}")
-def obtener_mis_cursos(email: str):
-    with Session(engine) as session:
-        statement = select(Compra).where(Compra.email == email)
-        resultados = session.exec(statement).all()
-        # Retornamos solo los IDs de los cursos comprados
-        return [compra.curso_id for compra in resultados]
-    
-class Curso(SQLModel, table=True):
-    id: str = Field(primary_key=True) # Ej: "solar-master"
-    titulo: str
-    precio: float
-    es_premium: bool = Field(default=True) # Aquí está la clave
-
-@app.get("/api/curso/{curso_id}/contenido")
-def obtener_contenido(curso_id: str, email_usuario: str):
-    with Session(engine) as session:
-        # 1. Buscar el curso
-        curso = session.get(Curso, curso_id)
-        
-        # 2. Si es GRATIS -> Pase directo
-        if not curso.es_premium:
-            return {"video_url": "https://youtube.com/..."}
-            
-        # 3. Si es PREMIUM -> Verificar si pagó
-        compra = session.exec(select(Compra).where(
-            Compra.email == email_usuario, 
-            Compra.curso_id == curso_id
-        )).first()
-        
-        if compra:
-            return {"video_url": "https://vimeo.com/secreto..."}
-        else:
-            return {"error": "Acceso denegado. Debes comprar este curso."}

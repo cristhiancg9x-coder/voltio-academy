@@ -75,18 +75,18 @@ export default function CourseGrid() {
     init();
   }, []);
 
-  // 2. Función para Comprar (Simulación)
+  // src/components/ui/CourseGrid.jsx
+
   const handleBuy = async (courseId) => {
     if (!user) {
       window.location.href = "/login";
       return;
     }
 
-    if (!confirm("Esto es una simulación de pago. ¿Deseas 'comprar' este curso gratis?")) return;
-
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/comprar`, {
+      // 1. Pedimos el link al backend
+      const res = await fetch(`${API_URL}/api/crear-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email, curso_id: courseId })
@@ -94,12 +94,16 @@ export default function CourseGrid() {
       
       const data = await res.json();
       
-      if (data.status === 'success' || data.status === 'exists') {
-        alert("¡Compra exitosa! Bienvenido al curso.");
-        setMyCourses([...myCourses, courseId]); // Actualizar UI al instante
+      // 2. REDIRECCIÓN A MERCADO PAGO
+      if (data.init_point) {
+        window.location.href = data.init_point; 
+      } else {
+        alert("Error al generar el pago. Intenta más tarde.");
       }
+
     } catch (error) {
-      alert("Error al procesar el pago.");
+      console.error(error);
+      alert("Error de conexión con el servidor de pagos.");
     } finally {
       setLoading(false);
     }
