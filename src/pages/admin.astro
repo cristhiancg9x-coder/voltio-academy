@@ -1,10 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AdminDashboard from '../components/ui/AdminDashboard.jsx';
+import CourseManager from '../components/ui/CourseManager.jsx'; // <--- IMPORTAR
 ---
 
 <BaseLayout title="Administración" description="Panel de control interno">
-  <div class="py-16 mt-10 px-4">
+  <div class="py-16 mt-10 px-4 space-y-12">
+      
+      {/* SECCIÓN 1: ESTADÍSTICAS */}
       <AdminDashboard client:only="react" />
+
+      {/* SECCIÓN 2: GESTIÓN DE CURSOS */}
+      <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-display font-bold text-white mb-8 border-t border-white/10 pt-8">Gestión de Contenido</h2>
+          <CourseManager client:load />
+      </div>
+
   </div>
 </BaseLayout>

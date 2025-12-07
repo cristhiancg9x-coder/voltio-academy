@@ -12,7 +12,8 @@ const coursesData = [
     hours: 5,
     image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
     price: 0, // Gratis
-    isFree: true
+    isFree: true,
+    hidden: true// <--- ¡ESTE NO SE VERÁ! PERO SI CAMBIAS A FALSE SI SE VERA!
   },
   {
     id: "planos-1",
@@ -23,7 +24,8 @@ const coursesData = [
     hours: 3,
     image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop",
     price: 0,
-    isFree: true
+    isFree: true,
+    hidden: true// <--- ¡ESTE NO SE VERÁ!
   },
   {
     id: "automatizacion-pro",
@@ -34,7 +36,8 @@ const coursesData = [
     hours: 15,
     image: "https://images.unsplash.com/photo-1565514020125-28b3d64024c0?q=80&w=1000&auto=format&fit=crop",
     price: 1,
-    isFree: false
+    isFree: false,
+    hidden: true// <--- ¡ESTE NO SE VERÁ!
   },
   {
     id: "solar-master",
@@ -45,7 +48,8 @@ const coursesData = [
     hours: 12,
     image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1000&auto=format&fit=crop",
     price: 1,
-    isFree: false
+    isFree: false,
+    hidden: true// <--- ¡ESTE NO SE VERÁ!
   }
 ];
 
@@ -106,10 +110,13 @@ export default function CourseGrid() {
       setLoading(false);
     }
   };
+  
+  // Dentro del componente CourseGrid, antes del return:
+  const cursosVisibles = coursesData.filter(c => !c.hidden);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-      {coursesData.map((course) => {
+      {cursosVisibles.map((course) => {
         // ¿Está desbloqueado?
         const isUnlocked = course.isFree || myCourses.includes(course.id);
 
