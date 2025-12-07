@@ -22,3 +22,14 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Ignorar archivos de configuración local del robot (si crearas alguno con claves)
+automation/.env
+automation/config_local.json
+
+# Ignorar carpetas de entornos virtuales Python
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc

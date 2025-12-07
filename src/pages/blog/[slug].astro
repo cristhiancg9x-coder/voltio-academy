@@ -18,10 +18,44 @@ const { title, description, pubDate, author, image, category, tags } = entry.dat
 const formattedDate = pubDate.toLocaleDateString('es-PE', {
   year: 'numeric', month: 'long', day: 'numeric'
 });
+
+// Generamos la URL absoluta de la imagen para que Google la encuentre bien
+const imageUrl = new URL(image, Astro.site).href;
 ---
 
 <BaseLayout title={title} description={description}>
   
+  {/* --- BLOQUE SEO AVANZADO (JSON-LD) --- 
+      Esto inyecta datos estructurados que Google ama.
+  */}
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": title,
+    "image": [imageUrl],
+    "datePublished": pubDate.toISOString().split('T')[0],
+    "dateModified": new Date().toISOString().split('T')[0],
+    "author": [{
+        "@type": "Person",
+        "name": author,
+        "url": "https://voltioacademy.lat/contacto"
+    }],
+    "publisher": {
+        "@type": "Organization",
+        "name": "VoltioAcademy",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://voltioacademy.lat/favicon.svg"
+        }
+    },
+    "description": description,
+    "articleSection": category,
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": Astro.url.href
+    }
+  })} />
+
   <article class="relative min-h-screen pb-20">
     
     <div class="relative w-full h-[60vh] min-h-[500px] flex items-end justify-center overflow-hidden pb-32">
@@ -31,12 +65,12 @@ const formattedDate = pubDate.toLocaleDateString('es-PE', {
             <div class="absolute inset-0 bg-gradient-to-b from-volt-dark/50 via-volt-dark/80 to-volt-dark"></div>
         </div>
 
-        {/* CAMBIO AQUÍ: pt-32 para el título del post individual */}
-        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center pt-32">
+        {/* CONTENIDO DEL HEADER (Con el ajuste pt-10 para que no choque) */}
+        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center pt-10">
             
             <div class="flex flex-col items-center gap-4 mb-6">
-                 <a href="/" class="inline-flex items-center gap-2 text-slate-400 hover:text-volt-primary transition-colors text-sm font-bold bg-black/50 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 mb-2">
-                    <ArrowLeft className="w-4 h-4" /> Volver
+                 <a href="/blog" class="inline-flex items-center gap-2 text-slate-400 hover:text-volt-primary transition-colors text-sm font-bold bg-black/50 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 mb-2">
+                    <ArrowLeft className="w-4 h-4" /> Volver al Blog
                 </a>
                 <span class="px-3 py-1 bg-volt-primary text-volt-dark font-bold text-xs uppercase rounded cursor-default shadow-[0_0_15px_rgba(0,240,255,0.3)]">
                     {category}

@@ -1,0 +1,6 @@
+{
+    "output_dir": "../src/content/blog",
+    "author": "Equipo VoltioAcademy",
+    "hero_image_path": "/social-image.jpg",
+    "default_tags": ["Técnico", "Electricidad", "Tutorial"]
+}

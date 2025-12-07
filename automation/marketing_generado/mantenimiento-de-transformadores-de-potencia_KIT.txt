@@ -1,0 +1,37 @@
+--- KIT DE MARKETING PARA: Mantenimiento de transformadores de potencia ---
+
+PARTE 2: EL KIT DE MARKETING (Texto plano)
+
+1. PROMPT DE IMAGEN:
+`Cinematic, dramatic shot of a high-voltage power transformer in an electrical substation, bathed in golden hour sunlight. Focus on the transformer's intricate details: cooling fins, bushings, and warning signs. Include subtle heat haze rising from the transformer. The overall tone is powerful and industrial, emphasizing the transformer's critical role in the power grid. Style: Photorealistic, 8K resolution, intricate details.`
+
+2. REDES SOCIALES:
+
+*   **LinkedIn (formal):**
+    Maintaining power transformers is crucial for ensuring a reliable electricity supply. Our latest article details best practices for transformer maintenance, from visual inspections to advanced electrical testing, with examples based on Colombian regulations (CNE). Learn how proactive maintenance can prevent costly breakdowns and optimize transformer performance. Read the full article here: [link to article] #PowerTransformers #ElectricalEngineering #Maintenance #Reliability #Energy
+
+*   **Twitter (informal):**
+
+    *   Tweet 1: ⚡️ Your power transformer's health is key to a stable grid! ⚡️ We've got a new article packed with tips & tricks for keeping your transformers running smoothly. Check it out! [link to article] #PowerGrid #Transformers #MaintenanceTips
+    *   Tweet 2: Oil analysis, visual checks, electrical tests... 🤔 Sounds complicated? Don't worry, we break it down in our article, with examples that align with Colombia's CNE. 💪 [link to article] #EnergyEfficiency #ReliablePower
+    *   Tweet 3:  Don't wait for a breakdown!  Proactive transformer maintenance saves $$$ in the long run.  Learn how to spot potential problems before they escalate. 🚀  [link to article] #PreventiveMaintenance #ElectricalSafety
+
+3. QUIZ RÁPIDO:
+
+*   **Pregunta 1:** ¿Cuál es la frecuencia recomendada para el análisis de aceite en transformadores de potencia, según el artículo?
+    a) Semanal
+    b) Anual o bianual
+    c) Quinquenal
+*   **Pregunta 2:**  Según el artículo, ¿qué sección del CNE establece los requisitos para la seguridad en las instalaciones eléctricas, incluyendo los procedimientos de bloqueo y etiquetado (LOTO)?
+    a) Sección 220
+    b) Sección 350
+    c) Sección 130
+*   **Pregunta 3:**  ¿Cuál de las siguientes NO es una actividad de mantenimiento preventivo mencionada en el artículo?
+    a) Inspecciones Visuales
+    b) Reemplazo del núcleo del transformador
+    c) Mediciones Eléctricas
+
+**Respuestas Correctas:**
+1.  b) Anual o bianual
+2.  c) Sección 130
+3.  b) Reemplazo del núcleo del transformador
