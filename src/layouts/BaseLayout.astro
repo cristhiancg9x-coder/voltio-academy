@@ -6,6 +6,7 @@ import Footer from '../components/ui/Footer.astro';
 import AIChatbot from '../components/ui/AIChatbot.jsx';
 import MobileNav from '../components/ui/MobileNav.jsx'; // <--- IMPORTAR
 import { Analytics } from "@vercel/analytics/react";
+import CookieBanner from '../components/ui/CookieBanner.jsx';
 
 interface Props {
 	title: string;
@@ -71,7 +72,9 @@ const { title, description = "Aprende electricidad desde cero hasta nivel expert
         </div>
         <Footer />
         <AIChatbot client:load />
-        <MobileNav client:load /> <AIChatbot client:load />
+        <MobileNav client:load /> 
+        <AIChatbot client:load />
+        <CookieBanner client:load />
         <Analytics client:load />
 	</body>
 </html>
