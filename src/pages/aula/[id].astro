@@ -2,78 +2,35 @@
 // src/pages/aula/[id].astro
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import VideoPlayer from '../../components/ui/VideoPlayer.jsx';
-import { coursesContent } from '../../data/coursesContent.js';
 
-// --- SEGURIDAD: VERIFICACIÓN DE COMPRA ---
-import { supabase } from '../../lib/supabase'; // Asegúrate de tener este cliente disponible o usar fetch
+// YA NO NECESITAMOS getStaticPaths PORQUE ESTAMOS EN MODO SERVER (SSR)
+// Astro generará la página al vuelo para cualquier ID.
 
 const { id } = Astro.params;
-const curso = coursesContent[id];
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-// 1. Si el curso no existe en nuestra data, 404
-if (!curso) {
-  return Astro.redirect('/404');
+// 1. Pedimos los datos del curso al Backend (Python)
+let curso = null;
+try {
+  const response = await fetch(`${API_URL}/api/curso/${id}/completo`);
+  if (response.ok) {
+    curso = await response.json();
+  }
+} catch (error) {
+  console.error("Error conectando al backend:", error);
 }
 
-// 2. Lógica de Protección (Server Side)
-// Astro se ejecuta en el servidor antes de enviar la página.
-// Verificamos cookies de sesión o redirigimos a login si no hay token.
-// NOTA: Para protección total en Astro SSR (Server Side Rendering), necesitamos adaptadores.
-// Como estamos en modo estático/híbrido, haremos la protección en el CLIENTE (abajo en el script).
+// 2. Si el curso no existe en la BD, mandamos a 404
+if (!curso || curso.error) {
+  return Astro.redirect('/404');
+}
 ---
 
 <BaseLayout title={`Aula: ${curso.title}`} description="Zona de estudio">
-  
-  {/* Capa de protección visual mientras verificamos */}
-  <div id="classroom-guard" class="fixed inset-0 bg-volt-dark z-50 flex flex-col items-center justify-center">
-      <div class="w-12 h-12 border-4 border-volt-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p class="text-slate-400">Verificando tu matrícula...</p>
-  </div>
+  <div class="min-h-screen bg-[#0a0a0a]">
+    
+    {/* Pasamos los datos REALES de la base de datos al reproductor */}
+    <VideoPlayer client:only="react" courseData={curso} courseId={id} />
 
-  <div id="classroom-content" class="hidden min-h-screen bg-[#0a0a0a]">
-    <VideoPlayer client:only="react" courseData={curso} />
   </div>
-
 </BaseLayout>
-
-<script define:vars={{ courseId: id }}>
-    // ESTE ES EL GUARDIA DE SEGURIDAD
-    import { supabase } from '../../lib/supabase'; // Asegúrate de que la ruta sea correcta
-
-    async function protectRoute() {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            window.location.href = '/login'; // No logueado -> Fuera
-            return;
-        }
-
-        // Si es un curso GRATIS, lo dejamos pasar (según tu lógica)
-        // Pero si es DE PAGO, consultamos a la API si lo compró
-        const API_URL = "https://api-voltio.onrender.com"; // O tu localhost
-        
-        try {
-            const response = await fetch(`${API_URL}/api/mis-cursos/${user.email}`);
-            const misCursos = await response.json();
-
-            // Lógica: Si el ID del curso está en la lista de comprados O es un curso gratis
-            // (Aquí asumo que 'domiciliaria-1' y 'planos-1' son gratis siempre)
-            const cursosGratis = ['domiciliaria-1', 'planos-1'];
-            
-            if (misCursos.includes(courseId) || cursosGratis.includes(courseId)) {
-                // ACCESO CONCEDIDO
-                document.getElementById('classroom-guard').style.display = 'none';
-                document.getElementById('classroom-content').classList.remove('hidden');
-            } else {
-                // ACCESO DENEGADO
-                alert("⛔ Acceso denegado: No has comprado este curso.");
-                window.location.href = '/cursos';
-            }
-        } catch (e) {
-            console.error(e);
-            window.location.href = '/cursos';
-        }
-    }
-
-    protectRoute();
-</script>

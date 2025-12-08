@@ -136,6 +136,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --- RUTA DE ESTADO (Vital para el chip "SISTEMA ONLINE") ---
+@app.get("/api/status")
+def check_status():
+    return {"sistema": "API Real", "db": "PostgreSQL", "estado": "OK"}
 
 @app.on_event("startup")
 def on_startup():

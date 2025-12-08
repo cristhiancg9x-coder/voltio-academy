@@ -10,7 +10,7 @@ export default function CourseManager() {
     id: '',
     titulo: '',
     descripcion: '',
-    imagen: '/images/courses/default.jpg',
+    imagen: '/images/courses/default.webp',
     nivel: 'Principiante',
     precio: 0,
     es_gratis: false

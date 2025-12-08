@@ -80,7 +80,7 @@ export default function VideoPlayer({ courseData }) {
     }
   };
 
-  const activeLesson = courseData.modules[currentModule].lessons[currentLesson];
+    const activeLesson = courseData.modules[currentModule].lessons[currentLesson];
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] overflow-hidden">
@@ -91,7 +91,7 @@ export default function VideoPlayer({ courseData }) {
             <iframe 
                 width="100%" 
                 height="100%" 
-                src={`https://www.youtube.com/embed/${activeLesson.videoId}?autoplay=1&rel=0&modestbranding=1`} 
+                src={`https://www.youtube.com/embed/${activeLesson.video_Id}?autoplay=1&rel=0&modestbranding=1`} 
                 title={activeLesson.title}
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

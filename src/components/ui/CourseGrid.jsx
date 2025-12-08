@@ -1,79 +1,43 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Play, Lock, Clock, BarChart, CreditCard, Loader2 } from 'lucide-react';
-
-const coursesData = [
-  {
-    id: "domiciliaria-1",
-    title: "Electricidad Domiciliaria: Nivel 1",
-    desc: "Domina las reparaciones básicas y cambios de tomacorrientes.",
-    level: "Principiante",
-    modules: 12,
-    hours: 5,
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
-    price: 0, // Gratis
-    isFree: true,
-    hidden: true// <--- ¡ESTE NO SE VERÁ! PERO SI CAMBIAS A FALSE SI SE VERA!
-  },
-  {
-    id: "planos-1",
-    title: "Lectura de Planos Eléctricos",
-    desc: "Aprende a interpretar diagramas unifilares según el CNE.",
-    level: "Intermedio",
-    modules: 8,
-    hours: 3,
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop",
-    price: 0,
-    isFree: true,
-    hidden: true// <--- ¡ESTE NO SE VERÁ!
-  },
-  {
-    id: "automatizacion-pro",
-    title: "Automatización con Contactores",
-    desc: "Lógica cableada para control de motores trifásicos.",
-    level: "Avanzado",
-    modules: 20,
-    hours: 15,
-    image: "https://images.unsplash.com/photo-1565514020125-28b3d64024c0?q=80&w=1000&auto=format&fit=crop",
-    price: 1,
-    isFree: false,
-    hidden: true// <--- ¡ESTE NO SE VERÁ!
-  },
-  {
-    id: "solar-master",
-    title: "Energía Solar Fotovoltaica",
-    desc: "Dimensionamiento de paneles solares y baterías.",
-    level: "Experto",
-    modules: 15,
-    hours: 12,
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1000&auto=format&fit=crop",
-    price: 1,
-    isFree: false,
-    hidden: true// <--- ¡ESTE NO SE VERÁ!
-  }
-];
+import { Play, Lock, Clock, BarChart, CreditCard, Loader2, AlertCircle } from 'lucide-react';
 
 export default function CourseGrid() {
   const [user, setUser] = useState(null);
+  const [courses, setCourses] = useState([]); // Aquí guardaremos los cursos de la DB
   const [myCourses, setMyCourses] = useState([]);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true); // Para el estado de carga inicial
 
   const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-  // 1. Cargar usuario y sus compras
+  // 1. CARGAR DATOS (Usuario, Mis Compras y Catálogo)
   useEffect(() => {
     const init = async () => {
+      // A. Obtener Usuario
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
-      if (user) {
-        try {
-          const res = await fetch(`${API_URL}/api/mis-cursos/${user.email}`);
-          const purchasedIds = await res.json();
-          setMyCourses(purchasedIds);
-        } catch (err) {
-          console.error("Error cargando cursos:", err);
+      try {
+        // B. Obtener Catálogo de Cursos (Desde Python)
+        const resCursos = await fetch(`${API_URL}/api/cursos`);
+        if (resCursos.ok) {
+            const dataCursos = await resCursos.json();
+            setCourses(dataCursos);
         }
+
+        // C. Obtener Mis Compras (Solo si hay usuario)
+        if (user) {
+          const resCompras = await fetch(`${API_URL}/api/mis-cursos/${user.email}`);
+          if (resCompras.ok) {
+              const purchasedIds = await resCompras.json();
+              setMyCourses(purchasedIds);
+          }
+        }
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+      } finally {
+        setFetching(false);
       }
     };
     init();
@@ -85,9 +49,11 @@ export default function CourseGrid() {
       return;
     }
 
+    // AVISO DE SIMULACIÓN (Quitar cuando tengas MercadoPago verificado)
+    if (!confirm("🚧 MODO PRUEBA: ¿Quieres simular la compra de este curso gratis?")) return;
+
     setLoading(true);
     try {
-      // 1. Pedimos el link al backend
       const res = await fetch(`${API_URL}/api/crear-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,29 +62,44 @@ export default function CourseGrid() {
       
       const data = await res.json();
       
-      // 2. REDIRECCIÓN A MERCADO PAGO
+      // Manejo de respuesta (Simulación o Real)
       if (data.init_point) {
+        // Modo Real
         window.location.href = data.init_point; 
+      } else if (data.status === 'success' || data.status === 'exists') {
+        // Modo Simulación
+        alert("¡Compra exitosa! El curso se ha desbloqueado.");
+        setMyCourses([...myCourses, courseId]);
       } else {
-        alert("Error al generar el pago. Intenta más tarde.");
+        alert("Error al procesar el pago.");
       }
 
     } catch (error) {
       console.error(error);
-      alert("Error de conexión con el servidor de pagos.");
+      alert("Error de conexión con el servidor.");
     } finally {
       setLoading(false);
     }
   };
-  
-  // Dentro del componente CourseGrid, antes del return:
-  const cursosVisibles = coursesData.filter(c => !c.hidden);
+
+  if (fetching) {
+      return <div className="text-center py-20"><Loader2 className="w-10 h-10 animate-spin mx-auto text-volt-primary" /></div>;
+  }
+
+  if (courses.length === 0) {
+      return (
+        <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl">
+            <p className="text-slate-400">No hay cursos publicados todavía.</p>
+            <p className="text-sm text-slate-600">Ve al panel de admin para crear uno.</p>
+        </div>
+      );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-      {cursosVisibles.map((course) => {
-        // ¿Está desbloqueado?
-        const isUnlocked = course.isFree || myCourses.includes(course.id);
+      {courses.map((course) => {
+        // ¿Está desbloqueado? (Si es gratis O si ya lo compré)
+        const isUnlocked = course.es_gratis || myCourses.includes(course.id);
 
         return (
           <div key={course.id} className={`group relative rounded-2xl border transition-all duration-300 overflow-hidden ${
@@ -130,12 +111,16 @@ export default function CourseGrid() {
               <div className="flex flex-col md:flex-row h-full">
                   {/* Imagen */}
                   <div className="w-full md:w-2/5 h-64 md:h-auto relative overflow-hidden">
-                      {/* CORRECCIÓN: className en lugar de class */}
-                      <img 
-                        src={course.image} 
-                        alt={course.title} 
-                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isUnlocked && 'grayscale'}`} 
-                      />
+           <img
+               src={course.imagen || '/images/courses/default.webp'} 
+               alt={course.titulo} 
+               className={`w-full h-full object-cover ...`} 
+               // TRUCO DE SEGURIDAD: Si falla default.jpg, usa la social-image.png
+               onError={(e) => {
+                  e.target.onerror = null; // Evita bucle infinito
+                  e.target.src = '/social-image.png';
+                }}
+             />
                       
                       {!isUnlocked && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-[2px]">
@@ -149,34 +134,26 @@ export default function CourseGrid() {
                       <div>
                           <div className="flex justify-between items-start mb-2">
                               <span className="text-xs font-bold px-2 py-1 rounded uppercase bg-white/5 text-slate-300">
-                                  {course.level}
+                                  {course.nivel}
                               </span>
                               {!isUnlocked && (
                                   <span className="text-volt-secondary text-xs font-bold border border-volt-secondary/50 px-2 py-1 rounded">
-                                      {/* CORRECCIÓN: Moneda S/ (Soles) */}
-                                      S/ {course.price}
+                                      S/ {course.precio}
                                   </span>
                               )}
                           </div>
 
                           <h3 className={`text-xl font-bold mb-2 font-display ${isUnlocked ? 'text-white group-hover:text-volt-primary' : 'text-slate-400'}`}>
-                              {course.title}
+                              {course.titulo}
                           </h3>
-                          <div className="flex items-center gap-4 text-xs text-slate-500 mb-4 font-mono">
-                            <div className="flex items-center gap-1">
-                                <BarChart className="w-3 h-3" /> {course.modules} Mód.
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> {course.hours}h
-                            </div>
-                        </div>
+                          <p className="text-sm text-slate-400 line-clamp-2 mb-4">{course.descripcion}</p>
                       </div>
 
                       <div className="mt-4">
                           {isUnlocked ? (
-                              <button className="w-full py-2 bg-volt-primary text-volt-dark font-bold rounded flex items-center justify-center gap-2 hover:bg-white transition-colors">
+                              <a href={`/aula/${course.id}`} className="block w-full py-2 bg-volt-primary text-volt-dark font-bold rounded text-center hover:bg-white transition-colors flex items-center justify-center gap-2">
                                   <Play className="w-4 h-4" /> Entrar al Aula
-                              </button>
+                              </a>
                           ) : (
                               <button 
                                 onClick={() => handleBuy(course.id)}
