@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StudentDashboard from '../components/ui/StudentDashboard.jsx';
+---
+
+<BaseLayout title="Mi Perfil" description="Panel del estudiante">
+  
+  <div class="min-h-screen pt-10">
+    <StudentDashboard client:only="react" />
+  </div>
+
+</BaseLayout>

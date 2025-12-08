@@ -73,10 +73,15 @@ export default function Navbar() {
               {user ? (
                 // SI ESTÁ LOGUEADO: Muestra su correo y botón salir
                 <div className="flex items-center gap-4 ml-4 pl-4 border-l border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-volt-primary">
-                        <User className="w-4 h-4" />
-                        <span className="hidden lg:inline">{user.email.split('@')[0]}</span>
-                    </div>
+
+              {/* CAMBIO: Enlace al perfil */}
+              <a href="/perfil" className="flex items-center gap-2 text-sm text-volt-primary hover:text-white transition-colors cursor-pointer group">
+                <div className="p-1 bg-volt-primary/10 rounded-full group-hover:bg-volt-primary/20">
+                   <User className="w-4 h-4" />
+                </div>
+                <span className="hidden lg:inline font-bold">{user.email.split('@')[0]}</span>
+             </a>
+
                     <button 
                         onClick={handleLogout}
                         className="bg-red-500/10 border border-red-500/50 text-red-400 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all"
