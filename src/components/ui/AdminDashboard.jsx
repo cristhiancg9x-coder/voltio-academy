@@ -8,15 +8,11 @@ export default function AdminDashboard() {
   const [suscriptores, setSuscriptores] = useState([]);
   const [examenes, setExamenes] = useState([]);
 
-  // TU CORREO DE ADMINISTRADOR (Cámbialo por el tuyo real)
-  const ADMIN_EMAIL = "cristhiancg9x@gmail.com"; 
-  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const ADMIN_EMAIL = "cristhiancg9x@gmail.com";
 
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Verificamos si el usuario actual es el jefe
       if (user && user.email === ADMIN_EMAIL) {
         setIsAdmin(true);
         fetchData();
@@ -29,17 +25,13 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      // Pedimos datos a Python en paralelo
-      const [resSusc, resExam] = await Promise.all([
-        fetch(`${API_URL}/api/admin/suscriptores`),
-        fetch(`${API_URL}/api/admin/examenes`)
+      const [{ data: suscData }, { data: examData }] = await Promise.all([
+        supabase.from('suscriptor').select('*'),
+        supabase.from('exam_results').select('*, user_id').order('taken_at', { ascending: false })
       ]);
 
-      const dataSusc = await resSusc.json();
-      const dataExam = await resExam.json();
-
-      setSuscriptores(dataSusc);
-      setExamenes(dataExam);
+      setSuscriptores(suscData || []);
+      setExamenes(examData || []);
     } catch (error) {
       console.error("Error cargando datos:", error);
     } finally {
@@ -66,7 +58,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            {/* TARJETA 1: SUSCRIPTORES */}
+            {/* SUSCRIPTORES */}
             <div className="bg-volt-dark/50 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-blue-500/10 rounded-lg"><Users className="w-6 h-6 text-blue-400" /></div>
@@ -85,7 +77,7 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* TARJETA 2: EXÁMENES */}
+            {/* EXÁMENES */}
             <div className="bg-volt-dark/50 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-green-500/10 rounded-lg"><FileText className="w-6 h-6 text-green-400" /></div>
@@ -98,17 +90,16 @@ export default function AdminDashboard() {
                     {examenes.map((ex) => (
                         <div key={ex.id} className="p-3 bg-black/40 rounded-lg border border-white/5 flex justify-between items-center text-sm">
                             <div>
-                                <p className="text-slate-300 font-bold">{ex.email}</p>
-                                <p className="text-xs text-slate-500">{ex.fecha}</p>
+                                <p className="text-slate-300 font-bold font-mono text-xs">{ex.user_id?.slice(0, 12)}…</p>
+                                <p className="text-xs text-slate-500">{new Date(ex.taken_at).toLocaleDateString()}</p>
                             </div>
-                            <span className={`px-3 py-1 rounded font-bold ${ex.nota >= 13 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                {ex.nota}/20
+                            <span className={`px-3 py-1 rounded font-bold ${ex.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {ex.score}/20
                             </span>
                         </div>
                     ))}
                 </div>
             </div>
-
         </div>
     </div>
   );

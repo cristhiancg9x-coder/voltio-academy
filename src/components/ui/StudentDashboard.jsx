@@ -7,8 +7,6 @@ export default function StudentDashboard() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -19,22 +17,14 @@ export default function StudentDashboard() {
       setUser(user);
 
       try {
-        // 1. Obtener Cursos Comprados
-        const resCompras = await fetch(`${API_URL}/api/mis-cursos/${user.email}`);
-        const cursoIds = await resCompras.json();
+        // Get all published courses (all are free/accessible now)
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_published', true);
 
-        // 2. Obtener Detalles de esos Cursos (Título, Progreso)
-        // Nota: En un sistema real haríamos un endpoint específico para esto.
-        // Aquí simularemos trayendo todos y filtrando para no complicar el backend hoy.
-        const resCatalogo = await fetch(`${API_URL}/api/cursos`);
-        const todosLosCursos = await resCatalogo.json();
-        
-        const misCursosData = todosLosCursos.filter(c => cursoIds.includes(c.id) || c.es_gratis);
-
-        // 3. Añadirle el progreso a cada uno (Simulado por ahora o llamada real)
-        // Para la V1, mostraremos el acceso directo.
-        setCourses(misCursosData);
-
+        if (error) throw error;
+        setCourses(data || []);
       } catch (error) {
         console.error("Error cargando perfil:", error);
       } finally {
@@ -55,7 +45,7 @@ export default function StudentDashboard() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       
-      {/* HEADER DEL PERFIL */}
+      {/* PROFILE HEADER */}
       <div className="bg-volt-dark/50 border border-white/10 rounded-3xl p-8 mb-12 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-volt-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
         
@@ -65,7 +55,7 @@ export default function StudentDashboard() {
             </div>
             <div>
                 <h1 className="text-3xl font-display font-bold text-white">Hola, <span className="text-volt-primary">{user?.email.split('@')[0]}</span></h1>
-                <p className="text-slate-400">Estudiante de Ingeniería Eléctrica</p>
+                <p className="text-slate-400">Estudiante de VoltioAcademy</p>
             </div>
         </div>
 
@@ -74,32 +64,32 @@ export default function StudentDashboard() {
         </button>
       </div>
 
-      {/* SECCIÓN DE CURSOS */}
+      {/* COURSES SECTION */}
       <h2 className="text-2xl font-display font-bold text-white mb-6 flex items-center gap-2">
           <BookOpen className="text-volt-secondary" /> Mis Cursos Activos
       </h2>
 
       {courses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map(curso => (
-                <div key={curso.id} className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-volt-primary/30 transition-all group">
+            {courses.map(course => (
+                <div key={course.id} className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-volt-primary/30 transition-all group">
                     <div className="h-40 overflow-hidden relative">
-                        <img src={curso.imagen} alt={curso.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img
+                          src={course.image_url || '/social-image.png'}
+                          alt={course.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => { e.target.onerror = null; e.target.src = '/social-image.png'; }}
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                     </div>
                     <div className="p-6">
-                        <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{curso.titulo}</h3>
+                        <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{course.title}</h3>
                         <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> A tu ritmo</span>
-                            <span className="bg-volt-primary/10 text-volt-primary px-2 py-0.5 rounded uppercase">{curso.nivel}</span>
+                            <span className="bg-volt-primary/10 text-volt-primary px-2 py-0.5 rounded uppercase">{course.level}</span>
                         </div>
                         
-                        {/* Barra de Progreso Simulada (Visual) */}
-                        <div className="w-full bg-white/10 h-1.5 rounded-full mb-4">
-                            <div className="bg-volt-primary h-1.5 rounded-full w-[0%]"></div> {/* Aquí conectaremos el % real luego */}
-                        </div>
-
-                        <a href={`/aula/${curso.id}`} className="block w-full py-2 bg-white/5 border border-white/10 text-center text-white rounded-lg hover:bg-volt-primary hover:text-black hover:border-volt-primary transition-all font-bold text-sm">
+                        <a href={`/aula/${course.id}`} className="block w-full py-2 bg-white/5 border border-white/10 text-center text-white rounded-lg hover:bg-volt-primary hover:text-black hover:border-volt-primary transition-all font-bold text-sm">
                             Continuar Aprendiendo
                         </a>
                     </div>
@@ -108,12 +98,12 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl">
-            <p className="text-slate-400 mb-4">Aún no te has inscrito en ningún curso.</p>
+            <p className="text-slate-400 mb-4">Aún no hay cursos disponibles.</p>
             <a href="/cursos" className="text-volt-primary hover:underline">Explorar Catálogo</a>
         </div>
       )}
 
-      {/* SECCIÓN DE CERTIFICADOS */}
+      {/* CERTIFICATES SECTION */}
       <h2 className="text-2xl font-display font-bold text-white mb-6 mt-16 flex items-center gap-2">
           <Award className="text-yellow-400" /> Mis Certificados
       </h2>
@@ -124,7 +114,6 @@ export default function StudentDashboard() {
             <br/>Aparecerán aquí automáticamente.
           </p>
       </div>
-
     </div>
   );
 }

@@ -42,15 +42,17 @@ const { title, description = "Aprende electricidad desde cero hasta nivel expert
         <meta property="twitter:description" content={description} />
         <meta property="twitter:image" content={new URL("/social-image.webp", Astro.site)} />
         
+        <!-- Google Analytics (via Partytown — no performance impact) -->
         <script 
-            type="text/partytown" 
-            src="https://www.googletagmanager.com/gtag/js?id=G-DMBSDHXM4Y">
+            type="text/partytown"
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-BG30YLDC9M">
         </script>
         <script type="text/partytown">
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-DMBSDHXM4Y');
+            gtag('config', 'G-BG30YLDC9M');
         </script>
 
 		<title>{title} | VoltioAcademy</title>
@@ -72,8 +74,7 @@ const { title, description = "Aprende electricidad desde cero hasta nivel expert
         </div>
         <Footer />
         <AIChatbot client:load />
-        <MobileNav client:load /> 
-        <AIChatbot client:load />
+        <MobileNav client:load />
         <CookieBanner client:load />
         <Analytics client:load />
 	</body>

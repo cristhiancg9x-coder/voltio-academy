@@ -1,12 +1,11 @@
-import { Home, BookOpen, GraduationCap, FileText } from 'lucide-react';
+import { Home, GraduationCap, FileText, FlaskConical } from 'lucide-react';
 
 export default function MobileNav() {
   
-  // Array de enlaces
   const links = [
     { name: 'Inicio', href: '/', icon: Home },
-    { name: 'Blog', href: '/blog', icon: BookOpen },
     { name: 'Cursos', href: '/cursos', icon: GraduationCap },
+    { name: 'Examen', href: '/examen', icon: FlaskConical },
     { name: 'Normas', href: '/normativa', icon: FileText },
   ];
 

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SignInForm from '../components/ui/SignInForm.jsx';
+import AuthComponent from '../components/ui/AuthComponent.jsx';
 ---
 
 <BaseLayout title="Iniciar Sesión" description="Accede a tu cuenta de VoltioAcademy">
@@ -11,7 +11,7 @@ import SignInForm from '../components/ui/SignInForm.jsx';
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-volt-secondary/10 blur-[120px] rounded-full pointer-events-none"></div>
 
     <div class="relative z-10 w-full">
-        <SignInForm client:load />
+        <AuthComponent view="sign_in" client:only="react" />
     </div>
 
   </div>

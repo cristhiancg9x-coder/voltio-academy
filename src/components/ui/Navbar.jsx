@@ -35,7 +35,6 @@ export default function Navbar() {
 
   const menuItems = [
     { name: 'Inicio', href: '/' },
-    { name: 'Blog', href: '/blog' },
     { name: 'Cursos', href: '/cursos' },
     { name: 'Simulador', href: '/examen' },
     { name: 'Normativa', href: '/normativa' },

@@ -1,87 +1,75 @@
 import { useState, useEffect } from 'react';
-import { Plus, Video, FolderPlus, Save, ChevronDown, ChevronRight, PlayCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Plus, Video, FolderPlus, PlayCircle, Loader2 } from 'lucide-react';
 
 export default function CourseEditor() {
-  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
-  
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [structure, setStructure] = useState(null); // La estructura actual del curso
+  const [structure, setStructure] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [refresh, setRefresh] = useState(0); // Para forzar recarga
+  const [refresh, setRefresh] = useState(0);
 
-  // Formularios temporales
-  const [newModule, setNewModule] = useState({ titulo: '', orden: 1 });
-  const [newLesson, setNewLesson] = useState({ modulo_id: null, titulo: '', video_id: '', duracion: '', orden: 1 });
+  const [newModule, setNewModule] = useState({ title: '', order_index: 1 });
+  const [newLesson, setNewLesson] = useState({ module_id: null, title: '', video_id: '', duration: '', order_index: 1 });
 
-  // 1. Cargar lista de cursos al inicio
+  // 1. Load courses
   useEffect(() => {
-    fetch(`${API_URL}/api/cursos`)
-      .then(res => res.json())
-      .then(data => setCourses(data))
-      .catch(err => console.error(err));
+    supabase.from('courses').select('id, title').eq('is_published', true)
+      .then(({ data }) => setCourses(data || []));
   }, []);
 
-  // 2. Cargar estructura cuando seleccionas un curso
+  // 2. Load structure when a course is selected
   useEffect(() => {
     if (!selectedCourse) return;
     setLoading(true);
-    fetch(`${API_URL}/api/curso/${selectedCourse}/completo`)
-      .then(res => res.json())
-      .then(data => {
-          setStructure(data);
-          setLoading(false);
+    supabase
+      .from('modules')
+      .select('*, lessons(*)')
+      .eq('course_id', selectedCourse)
+      .order('order_index')
+      .then(({ data }) => {
+        const sorted = (data || []).map(mod => ({
+          ...mod,
+          lessons: (mod.lessons || []).sort((a, b) => a.order_index - b.order_index)
+        }));
+        setStructure(sorted);
+        setLoading(false);
       });
   }, [selectedCourse, refresh]);
-
-  // --- ACCIONES ---
 
   const handleCreateModule = async (e) => {
     e.preventDefault();
     if (!selectedCourse) return;
-
-    try {
-        const res = await fetch(`${API_URL}/api/admin/crear-modulo`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                curso_id: selectedCourse,
-                titulo: newModule.titulo,
-                orden: parseInt(newModule.orden)
-            })
-        });
-        if(res.ok) {
-            alert("Módulo creado");
-            setNewModule({ titulo: '', orden: newModule.orden + 1 });
-            setRefresh(prev => prev + 1); // Recargar estructura
-        }
-    } catch (error) { console.error(error); }
+    const { error } = await supabase.from('modules').insert({
+      course_id: selectedCourse,
+      title: newModule.title,
+      order_index: parseInt(newModule.order_index)
+    });
+    if (!error) {
+      setNewModule({ title: '', order_index: newModule.order_index + 1 });
+      setRefresh(p => p + 1);
+    } else {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const handleCreateLesson = async (e) => {
     e.preventDefault();
-    // Generamos un ID único para la lección basado en el título
-    const lessonId = newLesson.titulo.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
-
-    try {
-        const res = await fetch(`${API_URL}/api/admin/crear-leccion`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: lessonId,
-                modulo_id: newLesson.modulo_id,
-                titulo: newLesson.titulo,
-                video_id: newLesson.video_id,
-                duracion: newLesson.duracion,
-                orden: parseInt(newLesson.orden)
-            })
-        });
-        if(res.ok) {
-            alert("Lección agregada");
-            setNewLesson({ ...newLesson, titulo: '', video_id: '', duracion: '', orden: newLesson.orden + 1 });
-            setRefresh(prev => prev + 1);
-        }
-    } catch (error) { console.error(error); }
+    const lessonId = newLesson.title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+    const { error } = await supabase.from('lessons').insert({
+      id: lessonId,
+      module_id: newLesson.module_id,
+      title: newLesson.title,
+      video_id: newLesson.video_id,
+      duration: newLesson.duration,
+      order_index: parseInt(newLesson.order_index)
+    });
+    if (!error) {
+      setNewLesson({ ...newLesson, title: '', video_id: '', duration: '', order_index: newLesson.order_index + 1 });
+      setRefresh(p => p + 1);
+    } else {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   return (
@@ -90,41 +78,43 @@ export default function CourseEditor() {
             <Video className="text-volt-secondary" /> Editor de Contenido
         </h2>
 
-        {/* SELECTOR DE CURSO */}
+        {/* COURSE SELECTOR */}
         <div className="mb-8">
             <label className="text-xs text-slate-400 block mb-2">Selecciona un curso para editar:</label>
-            <select 
+            <select
                 className="w-full bg-black/50 border border-white/10 rounded p-3 text-white"
                 onChange={(e) => setSelectedCourse(e.target.value)}
                 value={selectedCourse || ""}
             >
                 <option value="">-- Elige un curso --</option>
                 {courses.map(c => (
-                    <option key={c.id} value={c.id}>{c.titulo}</option>
+                    <option key={c.id} value={c.id}>{c.title}</option>
                 ))}
             </select>
         </div>
 
-        {selectedCourse && structure && (
+        {loading && <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-volt-primary" /></div>}
+
+        {selectedCourse && structure && !loading && (
             <div className="space-y-8">
                 
-                {/* 1. CREAR NUEVO MÓDULO */}
+                {/* CREATE MODULE */}
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h3 className="text-sm font-bold text-volt-primary mb-3 flex items-center gap-2">
                         <FolderPlus className="w-4 h-4" /> Nuevo Módulo
                     </h3>
                     <form onSubmit={handleCreateModule} className="flex gap-2">
-                        <input 
-                            placeholder="Ej: Módulo 1: Fundamentos" 
+                        <input
+                            placeholder="Ej: Módulo 1: Fundamentos"
                             className="flex-1 bg-black/30 border border-white/10 rounded p-2 text-sm text-white"
-                            value={newModule.titulo}
-                            onChange={e => setNewModule({...newModule, titulo: e.target.value})}
+                            value={newModule.title}
+                            onChange={e => setNewModule({...newModule, title: e.target.value})}
                             required
                         />
-                        <input 
+                        <input
                             type="number" placeholder="Orden" className="w-16 bg-black/30 border border-white/10 rounded p-2 text-sm text-white"
-                            value={newModule.orden}
-                            onChange={e => setNewModule({...newModule, orden: e.target.value})}
+                            value={newModule.order_index}
+                            onChange={e => setNewModule({...newModule, order_index: e.target.value})}
                         />
                         <button className="bg-volt-primary text-black px-4 rounded font-bold text-sm hover:bg-white transition-colors">
                             Crear
@@ -132,51 +122,48 @@ export default function CourseEditor() {
                     </form>
                 </div>
 
-                {/* 2. VISUALIZADOR DE ESTRUCTURA Y AGREGAR LECCIONES */}
+                {/* STRUCTURE VIEWER */}
                 <div className="space-y-4">
                     <h3 className="text-white font-bold border-b border-white/10 pb-2">Estructura Actual</h3>
-                    
-                    {structure.modules.length === 0 && <p className="text-slate-500 text-sm">Este curso está vacío.</p>}
+                    {structure.length === 0 && <p className="text-slate-500 text-sm">Este curso está vacío.</p>}
 
-                    {structure.modules.map((mod) => (
+                    {structure.map((mod) => (
                         <div key={mod.id} className="ml-4 border-l-2 border-white/10 pl-4 pb-4">
                             <div className="flex items-center justify-between mb-2">
                                 <h4 className="text-slate-200 font-bold text-lg">{mod.title}</h4>
-                                <button 
-                                    onClick={() => setNewLesson({...newLesson, modulo_id: mod.id})}
+                                <button
+                                    onClick={() => setNewLesson({...newLesson, module_id: mod.id})}
                                     className="text-xs bg-white/5 px-2 py-1 rounded text-slate-400 hover:text-white hover:bg-white/10"
                                 >
                                     + Agregar Lección aquí
                                 </button>
                             </div>
 
-                            {/* Formulario de Lección (Solo aparece si seleccionas este módulo) */}
-                            {newLesson.modulo_id === mod.id && (
-                                <form onSubmit={handleCreateLesson} className="bg-volt-secondary/10 p-3 rounded-lg mb-3 border border-volt-secondary/30 animate-fade-in">
+                            {newLesson.module_id === mod.id && (
+                                <form onSubmit={handleCreateLesson} className="bg-volt-secondary/10 p-3 rounded-lg mb-3 border border-volt-secondary/30">
                                     <p className="text-xs text-volt-secondary mb-2 font-bold">Nueva Lección para: {mod.title}</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                                        <input placeholder="Título lección" className="bg-black/50 border border-white/10 rounded p-2 text-sm text-white" required 
-                                            value={newLesson.titulo} onChange={e => setNewLesson({...newLesson, titulo: e.target.value})} />
-                                        <input placeholder="ID Video YouTube (ej: dQw4w9WgXcQ)" className="bg-black/50 border border-white/10 rounded p-2 text-sm text-white" required 
+                                        <input placeholder="Título lección" className="bg-black/50 border border-white/10 rounded p-2 text-sm text-white" required
+                                            value={newLesson.title} onChange={e => setNewLesson({...newLesson, title: e.target.value})} />
+                                        <input placeholder="ID Video YouTube (ej: dQw4w9WgXcQ)" className="bg-black/50 border border-white/10 rounded p-2 text-sm text-white" required
                                             value={newLesson.video_id} onChange={e => setNewLesson({...newLesson, video_id: e.target.value})} />
                                     </div>
                                     <div className="flex gap-2">
-                                        <input placeholder="Duración (ej: 10:00)" className="w-32 bg-black/50 border border-white/10 rounded p-2 text-sm text-white" 
-                                            value={newLesson.duracion} onChange={e => setNewLesson({...newLesson, duracion: e.target.value})} />
-                                        <input type="number" placeholder="Orden" className="w-20 bg-black/50 border border-white/10 rounded p-2 text-sm text-white" 
-                                            value={newLesson.orden} onChange={e => setNewLesson({...newLesson, orden: e.target.value})} />
+                                        <input placeholder="Duración (ej: 10:00)" className="w-32 bg-black/50 border border-white/10 rounded p-2 text-sm text-white"
+                                            value={newLesson.duration} onChange={e => setNewLesson({...newLesson, duration: e.target.value})} />
+                                        <input type="number" placeholder="Orden" className="w-20 bg-black/50 border border-white/10 rounded p-2 text-sm text-white"
+                                            value={newLesson.order_index} onChange={e => setNewLesson({...newLesson, order_index: e.target.value})} />
                                         <button className="flex-1 bg-volt-secondary text-white rounded font-bold text-sm hover:bg-white hover:text-black transition-colors">Guardar Lección</button>
                                     </div>
                                 </form>
                             )}
 
-                            {/* Lista de lecciones existentes */}
                             <div className="space-y-1">
                                 {mod.lessons.map((less) => (
                                     <div key={less.id} className="flex items-center gap-3 p-2 bg-white/5 rounded hover:bg-white/10 transition-colors">
                                         <PlayCircle className="w-4 h-4 text-slate-500" />
-                                        <span className="text-sm text-slate-300 flex-1">{less.titulo}</span>
-                                        <span className="text-xs text-slate-500 font-mono">{less.duracion}</span>
+                                        <span className="text-sm text-slate-300 flex-1">{less.title}</span>
+                                        <span className="text-xs text-slate-500 font-mono">{less.duration || '–'}</span>
                                     </div>
                                 ))}
                                 {mod.lessons.length === 0 && <p className="text-xs text-slate-600 italic ml-2">Sin lecciones aún.</p>}
@@ -184,7 +171,6 @@ export default function CourseEditor() {
                         </div>
                     ))}
                 </div>
-
             </div>
         )}
     </div>

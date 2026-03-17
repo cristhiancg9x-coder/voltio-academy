@@ -6,22 +6,54 @@ import VideoPlayer from '../../components/ui/VideoPlayer.jsx';
 // YA NO NECESITAMOS getStaticPaths PORQUE ESTAMOS EN MODO SERVER (SSR)
 // Astro generará la página al vuelo para cualquier ID.
 
-const { id } = Astro.params;
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+import { supabase } from '../../lib/supabase';
 
-// 1. Pedimos los datos del curso al Backend (Python)
+const { id } = Astro.params;
+
+// 1. Pedimos los datos del curso a Supabase
 let curso = null;
 try {
-  const response = await fetch(`${API_URL}/api/curso/${id}/completo`);
-  if (response.ok) {
-    curso = await response.json();
+  const { data, error } = await supabase
+    .from('courses')
+    .select(`
+      id,
+      title,
+      description,
+      modules (
+        id,
+        title,
+        order_index,
+        lessons (
+          id,
+          title,
+          video_id,
+          duration,
+          order_index
+        )
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  curso = data;
+
+  // Ordenar módulos y lecciones manualmente por order_index
+  if (curso && curso.modules) {
+    curso.modules.sort((a, b) => a.order_index - b.order_index);
+    curso.modules.forEach(mod => {
+      if (mod.lessons) {
+        mod.lessons.sort((a, b) => a.order_index - b.order_index);
+      }
+    });
   }
+
 } catch (error) {
-  console.error("Error conectando al backend:", error);
+  console.error("Error conectando a Supabase:", error);
 }
 
 // 2. Si el curso no existe en la BD, mandamos a 404
-if (!curso || curso.error) {
+if (!curso) {
   return Astro.redirect('/404');
 }
 ---

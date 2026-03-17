@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { Plus, Save, Layers, Video } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Layers, Loader2 } from 'lucide-react';
 
 export default function CourseManager() {
   const [loading, setLoading] = useState(false);
-  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const [success, setSuccess] = useState(false);
 
-  // Estado del formulario
   const [formData, setFormData] = useState({
     id: '',
-    titulo: '',
-    descripcion: '',
-    imagen: '/images/courses/default.webp',
-    nivel: 'Principiante',
-    precio: 0,
-    es_gratis: false
+    title: '',
+    description: '',
+    image_url: '/images/courses/default.webp',
+    level: 'Principiante',
+    is_free: true,
+    is_published: true,
   });
 
   const handleChange = (e) => {
@@ -25,24 +25,26 @@ export default function CourseManager() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/admin/crear-curso`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      if (res.ok) {
-        alert("¡Curso creado con éxito!");
-        // Aquí podrías limpiar el form o redirigir
-      } else {
-        alert("Error al crear curso");
-      }
+      const { error } = await supabase.from('courses').insert(formData);
+      if (error) throw error;
+      setSuccess(true);
     } catch (error) {
       console.error(error);
-      alert("Error de conexión");
+      alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="bg-green-500/10 border border-green-500/30 p-8 rounded-2xl text-center">
+        <h3 className="text-2xl font-bold text-green-400 mb-2">¡Curso creado!</h3>
+        <p className="text-slate-300 mb-4">El curso ya está disponible en la base de datos.</p>
+        <button onClick={() => setSuccess(false)} className="px-6 py-2 bg-volt-primary text-black font-bold rounded-lg">Crear otro</button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-volt-dark/50 border border-white/10 p-8 rounded-2xl max-w-2xl mx-auto">
@@ -59,7 +61,7 @@ export default function CourseManager() {
                 </div>
                 <div>
                     <label className="text-xs text-slate-400 block mb-1">Nivel</label>
-                    <select name="nivel" onChange={handleChange} className="w-full bg-black/50 border border-white/10 rounded p-2 text-white text-sm">
+                    <select name="level" onChange={handleChange} className="w-full bg-black/50 border border-white/10 rounded p-2 text-white text-sm">
                         <option>Principiante</option>
                         <option>Intermedio</option>
                         <option>Avanzado</option>
@@ -69,29 +71,22 @@ export default function CourseManager() {
 
             <div>
                 <label className="text-xs text-slate-400 block mb-1">Título</label>
-                <input name="titulo" onChange={handleChange} placeholder="Título del curso" className="w-full bg-black/50 border border-white/10 rounded p-2 text-white" required />
+                <input name="title" onChange={handleChange} placeholder="Título del curso" className="w-full bg-black/50 border border-white/10 rounded p-2 text-white" required />
             </div>
 
             <div>
                 <label className="text-xs text-slate-400 block mb-1">Descripción</label>
-                <textarea name="descripcion" onChange={handleChange} placeholder="¿De qué trata?" className="w-full bg-black/50 border border-white/10 rounded p-2 text-white h-20" required />
+                <textarea name="description" onChange={handleChange} placeholder="¿De qué trata?" className="w-full bg-black/50 border border-white/10 rounded p-2 text-white h-20" required />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 items-center">
-                <div>
-                    <label className="text-xs text-slate-400 block mb-1">Precio (S/)</label>
-                    <input name="precio" type="number" onChange={handleChange} className="w-full bg-black/50 border border-white/10 rounded p-2 text-white" />
-                </div>
-                <div className="flex items-center gap-2 mt-4">
-                    <input name="es_gratis" type="checkbox" onChange={handleChange} className="w-4 h-4 accent-volt-primary" />
-                    <label className="text-sm text-white">¿Es Gratis?</label>
-                </div>
+            <div>
+                <label className="text-xs text-slate-400 block mb-1">URL de Imagen (opcional)</label>
+                <input name="image_url" onChange={handleChange} defaultValue="/images/courses/default.webp" className="w-full bg-black/50 border border-white/10 rounded p-2 text-white text-sm" />
             </div>
 
-            <button disabled={loading} className="w-full bg-volt-primary text-black font-bold py-3 rounded-lg hover:bg-white transition-colors mt-4">
-                {loading ? "Guardando..." : "Crear Curso"}
+            <button disabled={loading} className="w-full bg-volt-primary text-black font-bold py-3 rounded-lg hover:bg-white transition-colors mt-4 flex items-center justify-center gap-2">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear Curso"}
             </button>
-
         </form>
     </div>
   );

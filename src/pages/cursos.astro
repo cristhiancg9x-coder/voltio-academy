@@ -2,6 +2,7 @@
 // src/pages/cursos.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CourseGrid from '../components/ui/CourseGrid.jsx';
+import AdBanner from '../components/ui/AdBanner.jsx';
 import { Award } from 'lucide-react';
 ---
 
@@ -21,6 +22,8 @@ import { Award } from 'lucide-react';
         Desbloquea contenido premium y lleva tu carrera al siguiente nivel.
       </p>
     </div>
+
+    <AdBanner client:load />
 
     <CourseGrid client:load />
 
